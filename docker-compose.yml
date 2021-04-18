@@ -30,8 +30,9 @@ services:
     build: .
     environment:
       - HOST=0.0.0.0
-      - PORT=80
-      - PORT_SECURE=443
+      - PORT=8080
+#      - PORT_SECURE=443
+#      - REDIS_URL=redis:6379
       - REDIS_URL=redis:6379
       - POSTGRES_DB_HOST=campaign_db
       - POSTGRES_DB=${POSTGRES_DB}
@@ -39,17 +40,17 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - API_KEY=${API_KEY}
     ports:
-      - ${PORT}:80
+      - 8081:80
 #      - ${PORT}:80
-      - ${PORT_SECURE}:443
+#      - ${PORT_SECURE}:443
     restart: always
     volumes:
-      - type: bind
-        source: /etc/letsencrypt/live/adbuyengine.com/fullchain.pem
-        target: /app/fullchain.pem
-      - type: bind
-        source: /etc/letsencrypt/live/adbuyengine.com/privkey.pem
-        target: /app/privkey.pem
+#      - type: bind
+#        source: /etc/letsencrypt/live/adbuyengine.com/fullchain.pem
+#        target: /app/fullchain.pem
+#      - type: bind
+#        source: /etc/letsencrypt/live/adbuyengine.com/privkey.pem
+#        target: /app/privkey.pem
       - type: bind
         source: ./static
         target: /app/static

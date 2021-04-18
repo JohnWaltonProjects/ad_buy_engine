@@ -1,12 +1,12 @@
-use crate::campaign_agent::CampaignAgent;
 use crate::api::campaign_state::process_click;
+use crate::campaign_agent::CampaignAgent;
 use crate::helper_functions::{rate_limit, ssl_config};
 use crate::private_routes::private_routes;
 use crate::public_routes::public_routes;
 use crate::utils::authentication::get_identity_service;
 use crate::utils::cache::add_cache;
 use crate::utils::config::CONFIG;
-use crate::utils::database::{establish_connection};
+use crate::utils::database::establish_connection;
 use crate::utils::middleware::click_processor::ClickProcessor;
 use crate::utils::state::init_state;
 use actix_cors::Cors;
@@ -18,6 +18,7 @@ use actix_web::http::header;
 use actix_web::http::header::HOST;
 use actix_web::web::{get, resource, scope, Data, JsonConfig};
 use actix_web::{middleware::Logger, App, HttpResponse, HttpServer};
+use actix_web_middleware_redirect_scheme::RedirectSchemeBuilder;
 use ad_buy_engine::constant::local_system_location::DIRECTORY_LOCATION_MAIN_PUBLIC_STATIC;
 use ad_buy_engine::constant::server_info::CAMPAIGN_SERVER_IP_PORT_TERSE;
 use ad_buy_engine::data::backend_models::campaign::CampaignModel;
@@ -26,14 +27,13 @@ use chrono::Duration as ChronoDuration;
 use chrono::Utc;
 use diesel::prelude::*;
 use diesel::PgConnection;
+use diesel_migrations::run_pending_migrations;
 use futures::executor;
 use futures::FutureExt;
 use openssl::ssl::{SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod};
 use r2d2_diesel::ConnectionManager;
 use std::sync::mpsc;
 use std::time::Duration;
-use actix_web_middleware_redirect_scheme::RedirectSchemeBuilder;
-use diesel_migrations::run_pending_migrations;
 
 pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
@@ -42,10 +42,9 @@ pub async fn server() -> std::io::Result<()> {
     env_logger::init();
 
     let pool = establish_connection();
-diesel_migrations::
-    run_pending_migrations(&pool.clone().get().expect("hyuu"))
+    diesel_migrations::run_pending_migrations(&pool.clone().get().expect("hyuu"))
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
-    
+
     let mut filtered_restored: Vec<Campaign> = {
         use crate::schema::campaigns::dsl::campaigns;
         campaigns
@@ -67,7 +66,7 @@ diesel_migrations::
 
     let server = HttpServer::new(move || {
         App::new()
-            .wrap(RedirectSchemeBuilder::new().enable(true).build())
+            // .wrap(RedirectSchemeBuilder::new().enable(true).build())
             .configure(add_cache)
             .wrap(
                 Cors::new()
@@ -103,8 +102,8 @@ diesel_migrations::
             )
             .data(campaign_agent.clone())
     })
-        .bind("campaign_server:80")?
-    .bind_openssl("campaign_server:443", ssl_config())?
+    .bind("campaign_server:80")?
+    // .bind_openssl("campaign_server:443", ssl_config())?
     .workers(4)
     .run();
 
