@@ -1,6 +1,5 @@
 use crate::appstate::app_state::{AppState, STATE};
 use crate::components::page_utilities::crud_element::complex_sub_component::landing_page_selector::LandingPageSelector;
-use crate::components::page_utilities::crud_element::complex_sub_component::listicle_builder::MatrixBuilder;
 use crate::components::page_utilities::crud_element::complex_sub_component::offer_selector::OfferSelector;
 use crate::components::page_utilities::crud_element::complex_sub_component::rhs_funnel_view_basic::RHSFunnelViewBasic;
 use crate::components::page_utilities::crud_element::crud_funnels::ActiveElement;
@@ -9,8 +8,7 @@ use crate::components::page_utilities::crud_element::dropdowns::sequence_type_dr
 use crate::notify_danger;
 use crate::utils::javascript::js_bindings::toggle_uk_dropdown;
 use ad_buy_engine::data::elements::funnel::{ConditionalSequence, Sequence, SequenceType};
-use ad_buy_engine::data::elements::landing_page::{LandingPage, WeightedLandingPage};
-use ad_buy_engine::data::elements::offer::WeightedOffer;
+use ad_buy_engine::data::elements::landing_page::LandingPage;
 use ad_buy_engine::data::lists::referrer_handling::ReferrerHandling;
 use ad_buy_engine::Country;
 use std::cell::RefCell;
@@ -22,14 +20,15 @@ use yew::format::Json;
 use yew::prelude::*;
 use yew::virtual_dom::{VList, VNode};
 
+use crate::components::page_utilities::crud_element::complex_sub_component::matrix_builder::MatrixBuilder;
+use ad_buy_engine::data::elements::matrix::Matrix;
+use std::sync::{Arc, RwLock};
 use yew_services::storage::Area;
 use yew_services::StorageService;
 
 pub enum Msg {
+    UpdateRootMatrix(Arc<RwLock<Matrix>>),
     UpdateSequenceType(SequenceType),
-    UpdateOffers(Vec<Vec<WeightedOffer>>),
-    UpdateLandingPages(Vec<WeightedLandingPage>),
-    UpdateSequence(Sequence),
 }
 
 #[derive(Properties, Clone)]
@@ -65,19 +64,8 @@ impl Component for CampaignSequenceBuilder {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::UpdateSequence(seq) => {
-                self.sequence = seq;
-                self.props.update_sequence.emit(self.sequence.clone())
-            }
-
-            Msg::UpdateLandingPages(lps) => {
-                self.sequence.landing_pages = lps;
-                self.equalize_offer_groups();
-                self.props.update_sequence.emit(self.sequence.clone());
-            }
-
-            Msg::UpdateOffers(offers) => {
-                self.sequence.offers = offers;
+            Msg::UpdateRootMatrix(root_matrix) => {
+                self.sequence.matrix = Matrix::fix_idx_pos(root_matrix);
                 self.props.update_sequence.emit(self.sequence.clone());
             }
 
@@ -109,31 +97,31 @@ impl Component for CampaignSequenceBuilder {
 }
 
 impl CampaignSequenceBuilder {
-    pub fn equalize_offer_groups(&mut self) {
-        let current_len = self.sequence.offers.len();
-        let mut highest_len = current_len;
-
-        self.sequence.landing_pages.iter().map(|s| {
-            if s.landing_page.number_of_calls_to_action as usize > current_len {
-                highest_len = s.landing_page.number_of_calls_to_action as usize;
-            }
-        });
-
-        notify_danger(format!("Current: {} Highest: {}", current_len, highest_len).as_str());
-
-        if current_len < highest_len {
-            let difference_to_add = highest_len - current_len;
-            for new_group in 1..difference_to_add {
-                notify_danger(format!("New Group usize: {}", new_group).as_str());
-                self.sequence.offers.push(vec![])
-            }
-        } else {
-            let difference_to_subtract = current_len - highest_len;
-            for rm_group in (1..difference_to_subtract).rev() {
-                self.sequence.offers.remove(rm_group);
-            }
-        }
-    }
+    // pub fn equalize_offer_groups(&mut self) {
+    //     let current_len = self.sequence.offers.len();
+    //     let mut highest_len = current_len;
+    //
+    //     self.sequence.landing_pages.iter().map(|s| {
+    //         if s.landing_page.number_of_calls_to_action as usize > current_len {
+    //             highest_len = s.landing_page.number_of_calls_to_action as usize;
+    //         }
+    //     });
+    //
+    //     notify_danger(format!("Current: {} Highest: {}", current_len, highest_len).as_str());
+    //
+    //     if current_len < highest_len {
+    //         let difference_to_add = highest_len - current_len;
+    //         for new_group in 1..difference_to_add {
+    //             notify_danger(format!("New Group usize: {}", new_group).as_str());
+    //             self.sequence.offers.push(vec![])
+    //         }
+    //     } else {
+    //         let difference_to_subtract = current_len - highest_len;
+    //         for rm_group in (1..difference_to_subtract).rev() {
+    //             self.sequence.offers.remove(rm_group);
+    //         }
+    //     }
+    // }
 
     pub fn sequence_type(&self) -> VNode {
         let mut oc = "uk-button uk-button-small".to_string();
@@ -161,38 +149,42 @@ impl CampaignSequenceBuilder {
     }
 
     pub fn render_view(&self) -> VNode {
-        match self.sequence.sequence_type {
-            SequenceType::OffersOnly => {
-                // notify_danger("o");
-                // let offers = self.sequence.offers.clone();
+        if let Some(restored_sequence) = &self.props.restored_sequence {
+            let matrix = arc!(restored_sequence.matrix);
 
-                VNode::from(html! {
-                    // <OfferSelector offers=offers state=Rc::clone(&self.props.state) eject_selected_offers=self.link.callback(Msg::UpdateOffers) />
-                })
+            match self.sequence.sequence_type {
+                SequenceType::OffersOnly => VNode::from(html! {
+                                <MatrixBuilder
+                                root_matrix=arc!(matrix)
+                                local_matrix=arc!(matrix)
+                                state=rc!(self.props.state)
+                                seq_type=SequenceType::OffersOnly
+                                campaign_sequence_builder_link=Rc::new(self.link.clone())
+                                />
+                }),
+
+                SequenceType::LandingPageAndOffers => VNode::from(html! {
+                                <MatrixBuilder
+                                root_matrix=arc!(matrix)
+                                local_matrix=arc!(matrix)
+                                state=rc!(self.props.state)
+                                seq_type=SequenceType::LandingPageAndOffers
+                                campaign_sequence_builder_link=Rc::new(self.link.clone())
+                                />
+                }),
+
+                SequenceType::Matrix => VNode::from(html! {
+                                <MatrixBuilder
+                                root_matrix=arc!(matrix)
+                                local_matrix=arc!(matrix)
+                                state=rc!(self.props.state)
+                                seq_type=SequenceType::Matrix
+                                campaign_sequence_builder_link=Rc::new(self.link.clone())
+                                />
+                }),
             }
-
-            SequenceType::LandingPageAndOffers => {
-                // notify_danger("lp o");
-                // let offers = self.sequence.offers.clone();
-                // let landers = self.sequence.landing_pages.clone();
-
-                VNode::from(html! {
-                <>
-                    // <LandingPageSelector landers=landers state=Rc::clone(&self.props.state) eject_selected_landing_pages=self.link.callback(Msg::UpdateLandingPages) />
-                    // <OfferSelector offers=offers state=Rc::clone(&self.props.state) eject_selected_offers=self.link.callback(Msg::UpdateOffers) />
-                </>
-                })
-            }
-
-            SequenceType::Matrix => {
-                // notify_danger("l");
-                // let psp = self.sequence.pre_landing_page.clone();
-                // let pairs = self.sequence.listicle_pairs.clone();
-
-                VNode::from(html! {
-                    // <MatrixBuilder psp=psp pairs=pairs state=Rc::clone(&self.props.state) eject_listicle=self.link.callback(Msg::UpdateSequence) active_sequence=self.sequence.clone() />
-                })
-            }
+        } else {
+            html! {}
         }
     }
 }

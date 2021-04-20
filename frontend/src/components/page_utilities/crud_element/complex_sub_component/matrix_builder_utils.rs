@@ -115,6 +115,18 @@ impl MatrixBuilder {
             let lid = item.read().unwrap().value.id.clone();
 
             let rmc = self.link.callback(move |_| Msg::RemoveChild(lid));
+            let campaign_sequence_builder_link =
+                if let Some(s) = &self.props.campaign_sequence_builder_link {
+                    Some(rc!(s))
+                } else {
+                    None
+                };
+
+            let sequence_builder_link = if let Some(s) = &self.props.sequence_builder_link {
+                Some(rc!(s))
+            } else {
+                None
+            };
 
             items.push(html! {
                                 <MatrixBuilder
@@ -123,7 +135,8 @@ impl MatrixBuilder {
                                 local_matrix=arc!(item)
                                 state=rc!(self.props.state)
                                 seq_type=SequenceType::Matrix
-                                sequence_builder_link=Rc::clone(&self.props.sequence_builder_link)
+                campaign_sequence_builder_link=campaign_sequence_builder_link
+                sequence_builder_link=sequence_builder_link
                                 />
             })
         }

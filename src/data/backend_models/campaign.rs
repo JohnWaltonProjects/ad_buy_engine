@@ -1,17 +1,17 @@
 use crate::data::elements::campaign::{Campaign, CampaignDestinationType};
+use crate::data::elements::funnel::{Funnel, Sequence};
+use crate::data::elements::traffic_source::TrafficSource;
+use crate::data::lists::click_transition_method::RedirectOption;
+use crate::data::lists::CostModel;
+use crate::data::work_space::Clearance;
 #[cfg(feature = "backend")]
 use crate::schema::*;
-use chrono::{NaiveDateTime, DateTime, Utc};
-use uuid::Uuid;
-use crate::data::work_space::Clearance;
-use crate::data::elements::traffic_source::TrafficSource;
 use crate::Country;
-use crate::data::lists::CostModel;
-use rust_decimal::Decimal;
-use crate::data::lists::click_transition_method::RedirectOption;
+use chrono::{DateTime, NaiveDateTime, Utc};
 use either::Either;
-use crate::data::elements::funnel::{Funnel, Sequence};
+use rust_decimal::Decimal;
 use url::Url;
+use uuid::Uuid;
 
 #[cfg_attr(
     feature = "backend",
@@ -42,8 +42,6 @@ pub struct CampaignModel {
 impl From<Campaign> for CampaignModel {
     fn from(campaign: Campaign) -> Self {
         to_json_string!(
-           id; campaign.campaign_id
-           account_id; campaign.account_id
             clearance; campaign.clearance
             traffic_source; campaign.traffic_source
             country; campaign.country
@@ -54,24 +52,27 @@ impl From<Campaign> for CampaignModel {
             campaign_core; campaign.campaign_core
             hosts; campaign.hosts
         );
-        
+
+        let id = campaign.campaign_id.to_string();
+        let account_id = campaign.account_id.to_string();
+
         Self {
             id,
             account_id,
             clearance,
             traffic_source,
             country,
-            name:campaign.name,
+            name: campaign.name,
             cost_model,
             cost_value,
             redirect_option,
             campaign_destination,
             campaign_core,
-            notes:campaign.notes,
+            notes: campaign.notes,
             archived: campaign.archived,
             last_updated: campaign.last_updated.timestamp(),
-            last_clicked:campaign.last_clicked.timestamp(),
-            hosts
+            last_clicked: campaign.last_clicked.timestamp(),
+            hosts,
         }
     }
 }
@@ -79,8 +80,7 @@ impl From<Campaign> for CampaignModel {
 impl From<CampaignModel> for Campaign {
     fn from(campaign_model: CampaignModel) -> Self {
         from_json_string!(
-            campaign_id; campaign_model.id => Uuid
-            account_id; campaign_model.account_id => Uuid
+
             clearance; campaign_model.clearance => Clearance
             traffic_source; campaign_model.traffic_source => TrafficSource
             country; campaign_model.country => Country
@@ -91,23 +91,32 @@ impl From<CampaignModel> for Campaign {
             campaign_core; campaign_model.campaign_core => Either<Funnel, Sequence>
             hosts; campaign_model.hosts => Vec<Url>
         );
-        
+
+        let campaign_id = Uuid::parse_str(&campaign_model.id).expect("SDFg");
+        let account_id = Uuid::parse_str(&campaign_model.account_id).expect("SDFg");
+
         Self {
             campaign_id,
             account_id,
             clearance,
             traffic_source,
             country,
-            name:campaign_model.name,
+            name: campaign_model.name,
             cost_model,
             cost_value,
             redirect_option,
             campaign_destination,
             campaign_core,
-            notes:campaign_model.notes,
-            archived:campaign_model.archived,
-            last_updated:DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(campaign_model.last_updated, 0), Utc),
-            last_clicked:DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(campaign_model.last_clicked, 0), Utc),
+            notes: campaign_model.notes,
+            archived: campaign_model.archived,
+            last_updated: DateTime::<Utc>::from_utc(
+                NaiveDateTime::from_timestamp(campaign_model.last_updated, 0),
+                Utc,
+            ),
+            last_clicked: DateTime::<Utc>::from_utc(
+                NaiveDateTime::from_timestamp(campaign_model.last_clicked, 0),
+                Utc,
+            ),
             hosts,
         }
     }

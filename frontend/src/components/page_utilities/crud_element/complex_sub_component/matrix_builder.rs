@@ -26,6 +26,7 @@ use yew_services::StorageService;
 use uuid::Uuid;
 use crate::components::page_utilities::update_element::Msg::Update;
 use crate::components::page_utilities::crud_element::crud_funnels::CRUDFunnel;
+use crate::components::page_utilities::crud_element::complex_sub_component::campaign_sequence_builder::{CampaignSequenceBuilder, Msg as CMsg};
 
 pub type RootMatrix = Rc<RefCell<Matrix>>;
 
@@ -49,7 +50,10 @@ pub struct Props {
     pub local_matrix: Arc<RwLock<Matrix>>,
     pub state: STATE,
     pub seq_type: SequenceType,
-    pub sequence_builder_link: Rc<Scope<RHSSequenceBuilder>>,
+    #[prop_or_default]
+    pub sequence_builder_link: Option<Rc<Scope<RHSSequenceBuilder>>>,
+    #[prop_or_default]
+    pub campaign_sequence_builder_link: Option<Rc<Scope<CampaignSequenceBuilder>>>,
     #[prop_or_default]
     pub remove_child: Option<Callback<Uuid>>,
     // pub
@@ -128,9 +132,12 @@ impl Component for MatrixBuilder {
                     )
                     .as_str(),
                 );
-                self.props
-                    .sequence_builder_link
-                    .send_message(SeqMsg::UpdateRootMatrix(arc!(self.props.root_matrix)));
+
+                if let Some(sb) = &self.props.sequence_builder_link {
+                    sb.send_message(SeqMsg::UpdateRootMatrix(arc!(self.props.root_matrix)));
+                } else if let Some(csb) = &self.props.campaign_sequence_builder_link {
+                    csb.send_message(CMsg::UpdateRootMatrix(arc!(self.props.root_matrix)))
+                }
             }
 
             Msg::UpdateMatrix(update) => {
@@ -290,9 +297,12 @@ impl Component for MatrixBuilder {
                     }
                 }
 
-                self.props
-                    .sequence_builder_link
-                    .send_message(SeqMsg::UpdateRootMatrix(arc!(self.props.root_matrix)));
+                if let Some(sb) = &self.props.sequence_builder_link {
+                    sb.send_message(SeqMsg::UpdateRootMatrix(arc!(self.props.root_matrix)));
+                } else if let Some(csb) = &self.props.campaign_sequence_builder_link {
+                    csb.send_message(CMsg::UpdateRootMatrix(arc!(self.props.root_matrix)))
+                }
+
                 return true;
             }
 
@@ -493,6 +503,18 @@ impl MatrixBuilder {
                     let local_matrix = arc!(matrix);
                     let lid = local_matrix.read().unwrap().value.id.clone();
                     let rmc = self.link.callback(move |_| Msg::RemoveChild(lid));
+                    let campaign_sequence_builder_link =
+                        if let Some(s) = &self.props.campaign_sequence_builder_link {
+                            Some(rc!(s))
+                        } else {
+                            None
+                        };
+
+                    let sequence_builder_link = if let Some(s) = &self.props.sequence_builder_link {
+                        Some(rc!(s))
+                    } else {
+                        None
+                    };
 
                     offer_children_nodes.push(html! {
                         <MatrixBuilder
@@ -501,7 +523,8 @@ impl MatrixBuilder {
                         local_matrix=local_matrix
                         state=rc!(self.props.state)
                         seq_type=SequenceType::OffersOnly
-                        sequence_builder_link=Rc::clone(&self.props.sequence_builder_link)
+                        sequence_builder_link=sequence_builder_link
+                        campaign_sequence_builder_link=campaign_sequence_builder_link
                         />
                     });
                 }
@@ -560,6 +583,19 @@ impl MatrixBuilder {
                         let lid = item.read().unwrap().value.id.clone();
 
                         let rmc = self.link.callback(move |_| Msg::RemoveChild(lid));
+                        let campaign_sequence_builder_link =
+                            if let Some(s) = &self.props.campaign_sequence_builder_link {
+                                Some(rc!(s))
+                            } else {
+                                None
+                            };
+
+                        let sequence_builder_link =
+                            if let Some(s) = &self.props.sequence_builder_link {
+                                Some(rc!(s))
+                            } else {
+                                None
+                            };
 
                         items.push(html! {
                                 <MatrixBuilder
@@ -568,7 +604,8 @@ impl MatrixBuilder {
                                 local_matrix=local_matrix
                                 state=rc!(self.props.state)
                                 seq_type=SequenceType::LandingPageAndOffers
-                                sequence_builder_link=Rc::clone(&self.props.sequence_builder_link)
+                            sequence_builder_link=sequence_builder_link
+                            campaign_sequence_builder_link=campaign_sequence_builder_link
                                 />
                         });
                     }
@@ -698,19 +735,34 @@ impl MatrixBuilder {
                         let lid = local_matrix.read().unwrap().value.id.clone();
                         let rmc = self.link.callback(move |_| Msg::RemoveChild(lid));
 
+                        let campaign_sequence_builder_link =
+                            if let Some(s) = &self.props.campaign_sequence_builder_link {
+                                Some(rc!(s))
+                            } else {
+                                None
+                            };
+
+                        let sequence_builder_link =
+                            if let Some(s) = &self.props.sequence_builder_link {
+                                Some(rc!(s))
+                            } else {
+                                None
+                            };
+
                         matrices.push(VNode::from(html! {
-                    <div class="uk-margin-top">
-                              {label!(&format!("Matrix #{}", idx + 1))}
-                                <MatrixBuilder
-                            remove_child=Some(rmc)
-                                root_matrix=arc!(self.props.root_matrix)
-                                local_matrix=arc!(local_matrix)
-                                state=rc!(self.props.state)
-                                seq_type=SequenceType::Matrix
-                                sequence_builder_link=Rc::clone(&self.props.sequence_builder_link)
-                                />
-                    </div>
-                    }));
+                        <div class="uk-margin-top">
+                                  {label!(&format!("Matrix #{}", idx + 1))}
+                                    <MatrixBuilder
+                                remove_child=Some(rmc)
+                                    root_matrix=arc!(self.props.root_matrix)
+                                    local_matrix=arc!(local_matrix)
+                                    state=rc!(self.props.state)
+                                    seq_type=SequenceType::Matrix
+                                    sequence_builder_link=sequence_builder_link
+                                    campaign_sequence_builder_link=campaign_sequence_builder_link
+                                    />
+                        </div>
+                        }));
                     }
                 }
 
