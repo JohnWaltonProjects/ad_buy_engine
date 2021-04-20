@@ -27,6 +27,7 @@ use uuid::Uuid;
 use crate::components::page_utilities::update_element::Msg::Update;
 use crate::components::page_utilities::crud_element::crud_funnels::CRUDFunnel;
 use crate::components::page_utilities::crud_element::complex_sub_component::campaign_sequence_builder::{CampaignSequenceBuilder, Msg as CMsg};
+use ad_buy_engine::data::elements::matrix::live_matrix::LiveMatrix;
 
 pub type RootMatrix = Rc<RefCell<Matrix>>;
 
@@ -105,15 +106,20 @@ impl Component for MatrixBuilder {
                     .as_str(),
                 );
 
-                for group in self
+                for (gidx, group) in self
                     .props
                     .local_matrix
                     .write()
                     .unwrap()
                     .children_groups
                     .iter_mut()
+                    .enumerate()
                 {
                     group.retain(|s| s.read().unwrap().value.id.clone() != id);
+                    for (idx, i) in group.iter().enumerate() {
+                        i.write().unwrap().value.item_idx = idx;
+                        i.write().unwrap().value.group_idx = gidx;
+                    }
                 }
 
                 notify_danger(
@@ -148,7 +154,7 @@ impl Component for MatrixBuilder {
                                 MatrixData::Offer(offer);
                         }
 
-                        Transform::Lander(lp) => {
+                        Transform::Lander(mut lp) => {
                             if let SequenceType::LandingPageAndOffers = self.props.seq_type {
                                 let offer_groups =
                                     self.props.root_matrix.read().unwrap().children_groups.len()
@@ -187,6 +193,27 @@ impl Component for MatrixBuilder {
                                 self.props.local_matrix.write().expect("G53greg").value.data =
                                     MatrixData::LandingPage(lp);
                             } else {
+                                if let Some(query) = lp.url.query() {
+                                    lp.url.set_query(Some(
+                                        format!(
+                                            "{}&d={}",
+                                            query,
+                                            self.props.local_matrix.read().unwrap().value.depth
+                                        )
+                                        .as_str(),
+                                    ));
+                                } else {
+                                    lp.url.set_query(Some(
+                                        format!(
+                                            "d={}",
+                                            self.props.local_matrix.read().unwrap().value.depth
+                                        )
+                                        .as_str(),
+                                    ))
+                                }
+
+                                notify_danger(format!("lander URL: {}", &lp.url).as_str());
+
                                 let local_group_idx =
                                     self.props.local_matrix.read().unwrap().value.group_idx;
                                 let ctas = lp.number_of_calls_to_action as usize;
@@ -234,7 +261,6 @@ impl Component for MatrixBuilder {
                     }
 
                     UpdateMatrix::Remove => {
-                        notify_danger("remove");
                         self.props
                             .remove_child
                             .as_ref()
@@ -295,6 +321,24 @@ impl Component for MatrixBuilder {
                                 )))]);
                         }
                     }
+                }
+
+                let live = LiveMatrix::from_matrix(&*self.props.root_matrix.read().unwrap());
+                let dfs = LiveMatrix::level_order_traversal(live);
+
+                for (d, i) in dfs {
+                    let name = match i.data {
+                        MatrixData::Offer(o) => o.name.clone(),
+                        MatrixData::LandingPage(lp) => lp.name.clone(),
+                        _ => format!(""),
+                    };
+                    notify_danger(
+                        format!(
+                            "Name:{}\nDepth:{}\nGroup IDX:{}\nIdx:{}\n\n",
+                            d, name, i.group_idx, i.item_idx
+                        )
+                        .as_str(),
+                    );
                 }
 
                 if let Some(sb) = &self.props.sequence_builder_link {

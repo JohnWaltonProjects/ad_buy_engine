@@ -5,7 +5,7 @@ use actix::Addr;
 use actix_redis::RedisActor;
 use actix_web::error::BlockingError;
 use actix_web::web::{block, Data, Json, Path, Query};
-use actix_web::HttpResponse;
+use actix_web::{HttpRequest, HttpResponse};
 use ad_buy_engine::data::account::Account;
 use ad_buy_engine::data::backend_models::campaign::CampaignModel;
 use ad_buy_engine::data::elements::campaign::Campaign;
@@ -23,28 +23,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock};
 use uuid::Uuid;
 
-pub async fn process_click(
-    pool: Data<PgPool>,
-    app_state: Data<Mutex<HashMap<Uuid, Campaign>>>,
-    redis: Data<Addr<RedisActor>>,
-    campaign_id: Path<Uuid>,
-    traffic_source_parameters: Query<HashMap<String, String>>,
-) -> Result<HttpResponse, ApiError> {
-    if let Some(found) = find_campaign(campaign_id.into_inner(), app_state, &pool) {
-        // build click map
-        // build visit
-        // visitor identity
-        //  save to redis
-
-        Ok(HttpResponse::Ok().finish())
-    } else {
-        Err(ApiError::NotFound(
-            "no campaign found in appstate".to_string(),
-        ))
-    }
-}
-
-fn find_campaign(
+pub fn find_campaign(
     id: Uuid,
     state: Data<Mutex<HashMap<Uuid, Campaign>>>,
     pool: &PgPool,
@@ -60,7 +39,7 @@ fn find_campaign(
         return restored;
     } else {
         let mut restored: Campaign = {
-            use crate::schema::campaigns::dsl::{id as campaign_id, campaigns};
+            use crate::schema::campaigns::dsl::{campaigns, id as campaign_id};
             use diesel::prelude::*;
             campaigns
                 .filter(campaign_id.eq(id.to_string()))

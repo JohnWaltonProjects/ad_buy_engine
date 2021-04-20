@@ -217,8 +217,6 @@ impl Component for RHSSequenceBuilder {
     }
 
     fn view(&self) -> Html {
-        notify_danger("seq builder");
-
         let referrer_handling_selected = if let Some(sequence) = self.return_active_sequence() {
             Some(sequence.referrer_handling.clone())
         } else {

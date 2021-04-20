@@ -1,4 +1,3 @@
-use crate::data::visit::click_map::ClickMap;
 use chrono::NaiveDateTime;
 use uuid::Uuid;
 

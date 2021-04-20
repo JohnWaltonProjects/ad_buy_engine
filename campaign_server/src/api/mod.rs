@@ -1,9 +1,10 @@
 pub mod account;
 pub mod auth;
 pub mod campaign_state;
+pub mod click;
 pub mod crud_element;
 pub mod health;
 pub mod invitation;
+pub mod sync_elements;
 pub mod update_app_state;
 pub mod user;
-pub mod sync_elements;

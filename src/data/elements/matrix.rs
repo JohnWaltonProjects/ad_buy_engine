@@ -8,6 +8,7 @@ use std::rc::Rc;
 use std::sync::{Arc, RwLock};
 use traversal::{Bft, DftLongestPaths};
 use uuid::Uuid;
+pub mod live_matrix;
 pub mod remove;
 
 impl PartialEq for Matrix {

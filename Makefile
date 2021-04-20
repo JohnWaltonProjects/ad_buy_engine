@@ -11,7 +11,7 @@ update-migration:
 	make docker-down && make upload-migrations && make docker-up
 
 update-server:
-	make build-campaign-server && make docker-down && make upload-campaign-server && make docker-up-it
+	docker-compose down && make build-campaign-server && docker-compose up
 
 server-upload-all:
 	make upload-static &&  scp ./Dockerfile ad_buy_engine@72.14.190.165:~/ && scp ./docker-compose.yml ad_buy_engine@72.14.190.165:~/ && scp -r ./migrations ad_buy_engine@72.14.190.165:~/ && scp -C ./target/release/campaign_server ad_buy_engine@72.14.190.165:~/bin/ && scp -C ./GeoLite2-ASN.mmdb ad_buy_engine@72.14.190.165:~/ && scp -C ./GeoLite2-City.mmdb ad_buy_engine@72.14.190.165:~/ && scp -C ./GeoLite2-Country.mmdb ad_buy_engine@72.14.190.165:~/ && scp ./regexes.yaml ad_buy_engine@72.14.190.165:~/ && scp .env ad_buy_engine@72.14.190.165:~/

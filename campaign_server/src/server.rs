@@ -1,4 +1,4 @@
-use crate::api::campaign_state::process_click;
+use crate::api::click::process_click;
 use crate::campaign_agent::CampaignAgent;
 use crate::helper_functions::{rate_limit, ssl_config};
 use crate::private_routes::private_routes;
@@ -59,6 +59,7 @@ pub async fn server() -> std::io::Result<()> {
     filtered_restored.iter().filter(|s| {
         s.last_clicked.timestamp() < Utc::now().timestamp() + ChronoDuration::days(3).num_seconds()
     });
+    println!("campagin in appstate: {}", &filtered_restored.len());
 
     let app_state = init_state(filtered_restored);
     let store = MemoryStore::new();
@@ -81,16 +82,11 @@ pub async fn server() -> std::io::Result<()> {
             .data(Client::new())
             .data(pool.clone())
             .app_data(app_state.clone())
-            // .service(
-            //     scope("/click")
-            //         .wrap(rate_limit(25, 60, store.clone()))
-            //         .service(resource("/{campaign_id}").route(get().to(process_click))),
-            // )
-            // .wrap(rate_limit(100, 60, store.clone()))
             .wrap_fn(|req, srv| {
                 println!("\n");
                 srv.call(req).map(|res| res)
             })
+            .service(resource("/{campaign_id}").route(get().to(process_click)))
             .configure(public_routes)
             .configure(private_routes)
             .service(

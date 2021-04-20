@@ -35,7 +35,7 @@ user-agent-parser = { version="0.2.7",optional=true}
 serde = { version = "1.0.116", features = ["derive", "rc","alloc"] }
 
 serde_derive = "1.0.116"
-maxminddb = "0.14.0"
+maxminddb = "0.17.2"
 lazy_static = "1.4.0"
 log = "0.4.11"
 rand = { version = "0.7", features = ["wasm-bindgen"] }

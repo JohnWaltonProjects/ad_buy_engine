@@ -1,7 +1,7 @@
 use crate::api::account::{get_account_model, get_all_accounts, update_account};
-use crate::api::campaign_state::process_click;
 use crate::api::crud_element::process_crud;
 use crate::api::health::get_team_id;
+use crate::api::sync_elements;
 use crate::api::{
     auth::{login, logout},
     crud_element,
@@ -9,7 +9,6 @@ use crate::api::{
     invitation,
     user::{create_user, get_user},
 };
-use crate::api::sync_elements;
 use crate::utils::middleware::auth::Auth as AuthMiddleware;
 use crate::utils::middleware::click_processor::ClickProcessor;
 use actix_files::Files;
@@ -35,10 +34,10 @@ pub fn private_routes(cfg: &mut web::ServiceConfig) {
         web::scope("/api/v1")
             .wrap(AuthMiddleware)
             .service(resource("/auth/logout").route(web::delete().to(logout)))
-        .service(resource("/get_account").route(get().to(get_account_model)))
-        .service(resource("/crud_element").route(post().to(process_crud)))
+            .service(resource("/get_account").route(get().to(get_account_model)))
+            .service(resource("/crud_element").route(post().to(process_crud)))
             .service(resource("/account").route(post().to(update_account)))
-            .service(resource("/sync_elements").route(post().to(sync_elements::sync)))
+            .service(resource("/sync_elements").route(post().to(sync_elements::sync))),
     )
     .service(
         web::scope("/secure").wrap(AuthMiddleware).service(

@@ -1,39 +1,143 @@
+use crate::data::elements::campaign::Campaign;
+use crate::data::elements::funnel::{ConditionalSequence, Sequence, SequenceType};
+use crate::data::elements::matrix::live_matrix::LiveMatrix;
+use crate::data::elements::matrix::{Matrix, MatrixData, MatrixValue};
+use crate::data::lists::condition::{Condition, ConditionDataType};
+use crate::data::visit::geo_ip::GeoIPData;
+use crate::data::visit::user_agent::UserAgentData;
 use either::Either;
+use std::collections::HashMap;
+use std::net::IpAddr;
+use std::sync::{Arc, RwLock};
+use traversal::{Bft, DftLongestPaths};
 use url::Url;
 use uuid::Uuid;
 use weighted_rs::{SmoothWeight, Weight};
+pub mod qualify_condition;
+use crate::data::visit::click_map::qualify_condition::condi_qualify;
+use qualify_condition::qualify_condition;
+// #[derive(Serialize, Deserialize, Clone, Debug)]
+// pub struct OfferClickMap {
+//     pub offer_id: Uuid,
+//     pub offer_url: Url,
+// }
+//
+// #[derive(Serialize, Deserialize, Clone, Debug)]
+// pub struct LandingPageClickMap {
+//     pub landing_page_id: Uuid,
+//     pub landing_page_url: Url,
+//     pub offers: Vec<OfferClickMap>,
+// }
+//
+// #[derive(Serialize, Deserialize, Clone, Debug)]
+// pub struct PreLandingPageClickMap {
+//     pub landing_page_id: Uuid,
+//     pub pre_landing_page_url: Url,
+//     pub landing_pages: Vec<LandingPageClickMap>,
+// }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct OfferClickMap {
-    pub offer_id: Uuid,
-    pub offer_url: Url,
+pub struct ClickMap {
+    pub children: Vec<ClickMap>,
+    pub value: MatrixValue,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct LandingPageClickMap {
-    pub landing_page_id: Uuid,
-    pub landing_page_url: Url,
-    pub offers: Vec<OfferClickMap>,
+impl ClickMap {
+    pub fn select_child(group: &Vec<LiveMatrix>) -> LiveMatrix {
+        if group.len() == 1 {
+            group.first().expect("g53sdfg").clone()
+        } else {
+            let mut sw: SmoothWeight<usize> = SmoothWeight::new();
+
+            for (idx, i) in group.iter().enumerate() {
+                let weight = match &i.value.data {
+                    MatrixData::LandingPage(lp) => lp.weight as isize,
+                    MatrixData::Offer(lp) => lp.weight as isize,
+                    _ => 0isize,
+                };
+                sw.add(idx, weight);
+            }
+
+            let selected_idx = sw.next().expect("G%dfs");
+            let selected = group.get(selected_idx).expect("T%Gsdf").clone();
+
+            selected
+        }
+    }
+
+    pub fn select_children_recursively(m: LiveMatrix) -> Vec<ClickMap> {
+        let mut nodes = vec![];
+
+        for group in m.children_groups.iter() {
+            let select = Self::select_child(group);
+            let value = select.value.clone();
+            let children = Self::select_children_recursively(select);
+
+            let map = ClickMap { children, value };
+
+            nodes.push(map);
+        }
+
+        nodes
+    }
+
+    pub fn generate(matrix: LiveMatrix) -> ClickMap {
+        let value = matrix.value.clone();
+        let mut children = ClickMap::select_children_recursively(matrix);
+
+        Self { children, value }
+    }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct PreLandingPageClickMap {
-    pub landing_page_id: Uuid,
-    pub pre_landing_page_url: Url,
-    pub landing_pages: Vec<LandingPageClickMap>,
+// #[derive(Serialize, Deserialize, Clone, Debug)]
+// pub enum ClickMap {
+//     Offer(OfferClickMap),
+//     LandingPage(LandingPageClickMap),
+//     Matrix(ClickMap),
+// }
+
+impl ClickMap {
+    pub fn from_campaign(
+        campaign: &Campaign,
+        geo_ip: &GeoIPData,
+        ua_data: &UserAgentData,
+        parameters: HashMap<String, String>,
+        referrer_url: Url,
+    ) -> Self {
+        match &campaign.campaign_core {
+            Either::Left(funnel) => {
+                if let Some(condi_seq) =
+                    condi_qualify(&funnel.conditional_sequences, &geo_ip, &ua_data)
+                {
+                    Self::from_sequence(select_sequence(&condi_seq.sequences))
+                } else {
+                    Self::from_sequence(select_sequence(&funnel.default_sequences))
+                }
+            }
+
+            Either::Right(sequence) => Self::from_sequence(sequence),
+        }
+    }
+
+    pub fn from_sequence(seq: &Sequence) -> Self {
+        let matrix = seq.matrix.read().unwrap();
+        let live = LiveMatrix::from_matrix(&*matrix);
+
+        match seq.sequence_type {
+            SequenceType::OffersOnly => ClickMap::generate(live),
+            SequenceType::LandingPageAndOffers => ClickMap::generate(live),
+            SequenceType::Matrix => ClickMap::generate(live),
+        }
+    }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct RedirectInstructions {
-    pub live_campaign_id: Uuid,
-    pub map: ClickMap,
-}
+pub fn select_sequence(group: &Vec<Sequence>) -> &Sequence {
+    let mut sw: SmoothWeight<usize> = SmoothWeight::new();
+    for (idx, s) in group.iter().enumerate() {
+        sw.add(idx, s.weight as isize);
+    }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub enum ClickMap {
-    Offer(OfferClickMap),
-    LandingPage(LandingPageClickMap),
-    PreLandingPage(PreLandingPageClickMap),
+    group.get(sw.next().expect("GT%sdf")).expect("HTGfdg")
 }
 
 // impl ClickMap {
