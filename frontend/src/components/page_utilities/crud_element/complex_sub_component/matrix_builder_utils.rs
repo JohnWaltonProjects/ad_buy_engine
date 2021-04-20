@@ -80,7 +80,7 @@ impl MatrixBuilder {
         VNode::from(html! {
         <div class="uk-grid-column-small uk-grid-row-small uk-child-width-auto uk-no-wrap uk-text-center" uk-grid="">
             <div>
-            <span class="fa fa-arrow-right" style=format!("color:{};", color_depth_border(depth + 1))></span>
+            <span class="fa fa-arrow-right" style=format!("color:{};", color_depth_border(depth))></span>
             </div>
 
             <div class="uk-text-truncate" uk-tooltip="title:Name;">
@@ -112,8 +112,13 @@ impl MatrixBuilder {
 
         let mut items = VList::new();
         for (idx, item) in group.iter().enumerate() {
+            let lid = item.read().unwrap().value.id.clone();
+
+            let rmc = self.link.callback(move |_| Msg::RemoveChild(lid));
+
             items.push(html! {
                                 <MatrixBuilder
+                                remove_child=Some(rmc)
                                 root_matrix=arc!(self.props.root_matrix)
                                 local_matrix=arc!(item)
                                 state=rc!(self.props.state)

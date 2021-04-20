@@ -71,11 +71,13 @@ use ad_buy_engine::data::lists::click_transition_method::RedirectOption;
 use crate::components::page_utilities::crud_element::complex_sub_component::plus_button::PlusButton;
 use crate::components::page_utilities::crud_element::complex_sub_component::lhs_conditional_sequences::LHSConditionalSequence;
 use crate::components::page_utilities::crud_element::complex_sub_component::lhs_default_sequences::LHSDefaultSequences;
-use crate::components::page_utilities::crud_element::complex_sub_component::rhs_funnel_view::RHSFunnelView;
+use crate::components::page_utilities::crud_element::complex_sub_component::rhs_funnel_view::
+RHSFunnelView;
 use ad_buy_engine::data::lists::condition::Condition;
 use ad_buy_engine::constant::{COLOR_BLUE, COLOR_GRAY};
-use ad_buy_engine::data::elements::matrix::{Matrix, BackendMatrix};
+use ad_buy_engine::data::elements::matrix::Matrix;
 
+#[derive(Debug)]
 pub enum Msg {
     Ignore,
     Submit,
@@ -350,67 +352,48 @@ impl Component for CRUDFunnel {
                 _ => {}
             },
 
-            Msg::CreateSequence(active_element) => {
-                let new_id = Uuid::new_v4();
-
-                match active_element {
-                    ActiveElement::Funnel => {
-                        self.conditional_sequences.push(ConditionalSequence {
-                            id: new_id,
-                            name: "New Conditional Sequence".to_string(),
-                            condition_set: vec![],
-                            sequences: vec![],
-                            conditional_sequence_is_active: true,
-                        });
-                        self.active_element =
-                            ActiveElement::ConditionalSequence((new_id.clone(), None));
-                    }
-
-                    ActiveElement::ConditionalSequence((condi_id, None)) => {
-                        self.conditional_sequences
-                            .iter_mut()
-                            .find(|s| s.id == condi_id)
-                            .map(|s| {
-                                s.sequences.push(Sequence {
-                                    id: new_id,
-                                    name: "New Sequence".to_string(),
-                                    weight: 100,
-                                    sequence_type: SequenceType::OffersOnly,
-                                    redirect_option: RedirectOption::Redirect,
-                                    referrer_handling: ReferrerHandling::DoNothing,
-                                    matrix: BackendMatrix::from_matrix(
-                                        Matrix::source().read().unwrap().clone(),
-                                    ),
-                                    weight_optimization_active: false,
-                                    sequence_is_active: true,
-                                })
-                            });
-                        self.active_element = ActiveElement::ConditionalSequence((
-                            condi_id.clone(),
-                            Some(new_id.clone()),
-                        ));
-                    }
-
-                    ActiveElement::DefaultSequence(_) => {
-                        self.default_sequences.push(Sequence {
-                            id: new_id,
-                            name: "New Default Sequence".to_string(),
-                            weight: 100,
-                            sequence_type: SequenceType::OffersOnly,
-                            redirect_option: RedirectOption::Redirect,
-                            referrer_handling: ReferrerHandling::DoNothing,
-                            matrix: BackendMatrix::from_matrix(
-                                Matrix::source().read().unwrap().clone(),
-                            ),
-                            weight_optimization_active: false,
-                            sequence_is_active: true,
-                        });
-                        self.active_element = ActiveElement::DefaultSequence(new_id.clone());
-                    }
-
-                    _ => {}
+            Msg::CreateSequence(active_element) => match active_element {
+                ActiveElement::Funnel => {
+                    let new_id = Uuid::new_v4();
+                    self.conditional_sequences.push(ConditionalSequence {
+                        id: new_id,
+                        name: "New Conditional Sequence".to_string(),
+                        condition_set: vec![],
+                        sequences: vec![],
+                        conditional_sequence_is_active: true,
+                    });
+                    self.active_element =
+                        ActiveElement::ConditionalSequence((new_id.clone(), None));
                 }
-            }
+
+                ActiveElement::ConditionalSequence((condi_id, None)) => {
+                    let seq = Sequence::default();
+                    let new_id = seq.id.clone();
+
+                    self.conditional_sequences
+                        .iter_mut()
+                        .find(|s| s.id == condi_id)
+                        .map(|s| {
+                            let seq = Sequence::default();
+                            let new_id = seq.id.clone();
+                            s.sequences.push(seq);
+                        });
+
+                    self.active_element = ActiveElement::ConditionalSequence((
+                        condi_id.clone(),
+                        Some(new_id.clone()),
+                    ));
+                }
+
+                ActiveElement::DefaultSequence(_) => {
+                    let seq = Sequence::default();
+                    let new_id = seq.id.clone();
+                    self.default_sequences.push(seq);
+                    self.active_element = ActiveElement::DefaultSequence(new_id.clone());
+                }
+
+                _ => {}
+            },
 
             Msg::SetActiveElement(element) => self.active_element = element,
 
@@ -556,9 +539,7 @@ impl Component for CRUDFunnel {
 
 impl CRUDFunnel {
     pub fn fetch(&self) -> Option<FetchTask> {
-        notify_danger("Submitting...");
         let data = if let ModalType::Create = self.props.modal_type {
-            notify_danger("Create");
             CRUDElementRequest::Create(PrimeElementBuild::Funnel(Funnel {
                 funnel_id: Uuid::new_v4(),
                 account_id: self

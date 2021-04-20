@@ -14,7 +14,7 @@ use crate::notify_danger;
 use crate::utils::javascript::js_bindings::toggle_uk_dropdown;
 use ad_buy_engine::data::elements::funnel::{ConditionalSequence, Sequence, SequenceType};
 use ad_buy_engine::data::elements::landing_page::LandingPage;
-use ad_buy_engine::data::elements::matrix::{BackendMatrix, Matrix, MatrixData};
+use ad_buy_engine::data::elements::matrix::{Matrix, MatrixData};
 use ad_buy_engine::data::elements::offer::Offer;
 use ad_buy_engine::data::lists::referrer_handling::ReferrerHandling;
 use ad_buy_engine::Country;
@@ -111,8 +111,7 @@ impl Component for RHSSequenceBuilder {
 
             Msg::UpdateRootMatrix(root_matrix) => {
                 if let Some(mut sequence) = self.return_active_sequence().cloned() {
-                    sequence.matrix =
-                        BackendMatrix::from_matrix(root_matrix.read().unwrap().clone());
+                    sequence.matrix = Matrix::fix_idx_pos(root_matrix);
                     self.props.update_sequence.emit(sequence);
                 } else {
                     notify_danger("Err: Could not extract active sequence")
@@ -141,16 +140,15 @@ impl Component for RHSSequenceBuilder {
                     if let Some(old_seq) = self.props.default_sequences.iter().find(|s| &s.id == id)
                     {
                         if new_seq.sequence_type != old_seq.sequence_type {
-                            let mut arc_matrix =
-                                Matrix::pre_from_backend_matrix(new_seq.matrix.clone());
-                            arc_matrix = Matrix::post_fill_parent_nodes(arc_matrix);
+                            let arc_matrix = arc!(new_seq.matrix);
+                            let parent = arc_matrix.read().unwrap().value.clone();
 
                             let mut matrix = arc_matrix.write().expect("G%Rf");
                             matrix.children_groups.clear();
                             matrix
                                 .children_groups
                                 .push(vec![Arc::new(RwLock::new(Matrix::void(
-                                    Some(arc!(arc_matrix)),
+                                    Some(Box::new(parent)),
                                     0,
                                     0,
                                     1,
@@ -170,13 +168,13 @@ impl Component for RHSSequenceBuilder {
                         {
                             if let Some(old_seq) = old_c.sequences.iter().find(|s| &s.id == id) {
                                 if new_seq.sequence_type != old_seq.sequence_type {
-                                    let mut arc_matrix =
-                                        Matrix::pre_from_backend_matrix(new_seq.matrix.clone());
-                                    arc_matrix = Matrix::post_fill_parent_nodes(arc_matrix);
+                                    let arc_matrix = arc!(new_seq.matrix);
+                                    let parent = arc_matrix.read().unwrap().value.clone();
+
                                     let mut matrix = arc_matrix.write().expect("G%Rf");
                                     matrix.children_groups.clear();
                                     matrix.children_groups.push(vec![Arc::new(RwLock::new(
-                                        Matrix::void(Some(arc!(arc_matrix)), 0, 0, 1),
+                                        Matrix::void(Some(Box::new(parent)), 0, 0, 1),
                                     ))]);
                                 }
                             }
@@ -219,6 +217,8 @@ impl Component for RHSSequenceBuilder {
     }
 
     fn view(&self) -> Html {
+        notify_danger("seq builder");
+
         let referrer_handling_selected = if let Some(sequence) = self.return_active_sequence() {
             Some(sequence.referrer_handling.clone())
         } else {
@@ -291,37 +291,12 @@ impl RHSSequenceBuilder {
 
     pub fn render_view(&self) -> VNode {
         if let Some(sequence) = self.return_active_sequence() {
-            let mut local_matrix = Matrix::pre_from_backend_matrix(sequence.matrix.clone());
-            local_matrix = Matrix::post_fill_parent_nodes(local_matrix);
-
+            let local_matrix = arc!(sequence.matrix);
             let root_matrix = arc!(local_matrix);
 
             VNode::from(html! {
                 <MatrixBuilder root_matrix=root_matrix local_matrix=local_matrix state=Rc::clone(&self.props.state) seq_type=sequence.sequence_type sequence_builder_link=Rc::new(self.link.clone()) />
             })
-            // match sequence.sequence_type {
-            //     SequenceType::OffersOnly => {
-            //         let local_matrix = arc!(self.stored_offers_only.unwrap());
-            //         let root_matrix = arc!(self.stored_offers_only.unwrap());
-            //         VNode::from(html! {
-            //             <MatrixBuilder root_matrix=root_matrix local_matrix=local_matrix state=Rc::clone(&self.props.state) seq_type=sequence.sequence_type sequence_builder_link=Rc::new(self.link.clone()) />
-            //         })
-            //     }
-            //     SequenceType::LandingPageAndOffers => {
-            //         let local_matrix = arc!(self.stored_landers_and_offers.unwrap());
-            //         let root_matrix = arc!(self.stored_landers_and_offers.unwrap());
-            //         VNode::from(html! {
-            //             <MatrixBuilder root_matrix=root_matrix local_matrix=local_matrix state=Rc::clone(&self.props.state) seq_type=sequence.sequence_type sequence_builder_link=Rc::new(self.link.clone()) />
-            //         })
-            //     }
-            //     SequenceType::Matrix => {
-            //         let local_matrix = arc!(self.stored_matrix.unwrap());
-            //         let root_matrix = arc!(self.stored_matrix.unwrap());
-            //         VNode::from(html! {
-            //             <MatrixBuilder root_matrix=root_matrix local_matrix=local_matrix state=Rc::clone(&self.props.state) seq_type=sequence.sequence_type sequence_builder_link=Rc::new(self.link.clone()) />
-            //         })
-            //     }
-            // }
         } else {
             VNode::from(html! {})
         }

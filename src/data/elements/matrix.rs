@@ -8,76 +8,11 @@ use std::rc::Rc;
 use std::sync::{Arc, RwLock};
 use traversal::{Bft, DftLongestPaths};
 use uuid::Uuid;
-
-// pub type WrappedMatrix = Arc<RwLock<Matrix>>;
-// pub type WrappedMatrices = Arc<RwLock<Vec<Vec<WrappedMatrix>>>>;
+pub mod remove;
 
 impl PartialEq for Matrix {
     fn eq(&self, other: &Self) -> bool {
         self.value.id == other.value.id
-    }
-}
-
-// #[derive(Debug, Clone, Serialize, Deserialize)]
-// pub struct MatrixSimple {
-//     pub children_groups: Vec<Vec<Self>>,
-//     pub value: MatrixValue,
-// }
-
-// impl MatrixSimple {
-//     pub fn from_matrix(matrix: Arc<RwLock<Matrix>>) ->Self {
-//         let matrix_state = matrix.read().expect("GF$%ddas");
-//         let children_groups = *matrix_state.children_groups.iter().map(|s| )
-//
-//         let mut ms = MatrixSimple {
-//             children_groups,
-//             value: *matrix_state.clone(),
-//         };
-//
-//         let starting_depth = ms.value.depth;
-//         for child in matrix_state.
-//     }
-// }
-
-// #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-// pub struct MatrixValue {
-//     pub id: Arc<Uuid>,
-//     pub parent_matrix: Option<Arc<MatrixValue>>,
-//     pub group_idx: usize,
-//     pub item_idx: usize,
-//     pub depth: usize,
-//     pub data: MatrixData,
-// }
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackendMatrix {
-    pub children_groups: Vec<Vec<Arc<RwLock<Self>>>>,
-    pub value: BackendMatrixValue,
-}
-
-impl BackendMatrix {
-    pub fn from_matrix(m: Matrix) -> Self {
-        let mut children_groups = vec![];
-
-        for (group_idx, group) in m.children_groups.iter().enumerate() {
-            let mut group_list = vec![];
-
-            for (idx, item) in group.iter().enumerate() {
-                let m = item.read().unwrap();
-                let bm = BackendMatrix::from_matrix(m.clone());
-
-                group_list.insert(idx, Arc::new(RwLock::new(bm)))
-            }
-
-            children_groups.push(group_list);
-        }
-
-        let value = m.value.into();
-
-        Self {
-            children_groups,
-            value,
-        }
     }
 }
 
@@ -88,99 +23,149 @@ pub struct Matrix {
 }
 
 impl Matrix {
-    pub fn post_fill_parent_nodes(matrix: Arc<RwLock<Matrix>>) -> Arc<RwLock<Matrix>> {
-        let parent_node = arc!(matrix);
-        let mut children = vec![];
+    pub fn get_all_paths(
+        root: Arc<RwLock<Matrix>>,
+        mut list: Option<Vec<Arc<RwLock<Matrix>>>>,
+    ) -> Vec<Arc<RwLock<Matrix>>> {
+        let mut paths = vec![];
 
-        for (gidx, group) in matrix.read().unwrap().children_groups.iter().enumerate() {
-            for (idx, item) in group.iter().enumerate() {
-                let rest_parent = &item.write().unwrap().value.parent_matrix;
-                if let &None = rest_parent {
-                    item.write().unwrap().value.parent_matrix = Some(arc!(parent_node))
+        root.read()
+            .unwrap()
+            .children_groups
+            .iter()
+            .flatten()
+            .map(|s| {
+                paths.push(arc!(s));
+                paths = Matrix::get_all_paths(arc!(s), Some(paths.clone()));
+            });
+
+        paths
+    }
+
+    pub fn get_by_id(id: Uuid, matrix: Arc<RwLock<Matrix>>) -> Result<Arc<RwLock<Matrix>>, String> {
+        let matrix = arc!(matrix);
+        // let groups = matrix.read().unwrap().children_groups.iter().enumerate();
+
+        // if !groups.is_empty() {
+        for (gi, g) in matrix.read().unwrap().children_groups.iter().enumerate() {
+            for (idx, i) in g.iter().enumerate() {
+                let local_matrix = arc!(i);
+                let lid = local_matrix.read().unwrap().value.id.clone();
+                // let children = local_matrix
+                //     .read()
+                //     .unwrap()
+                //     .children_groups
+                //     .iter()
+                //     .flatten();
+
+                if lid == id {
+                    return Ok(arc!(local_matrix));
+                } else {
+                    for i in local_matrix
+                        .read()
+                        .unwrap()
+                        .children_groups
+                        .iter()
+                        .flatten()
+                    {
+                        let child = arc!(i);
+                        if let Ok(found) = Matrix::get_by_id(id.clone(), child) {
+                            return Ok(found);
+                        }
+                    }
                 }
-
-                children.push(arc!(item))
             }
         }
+        // } else {
+        Err(format!("Not found..."))
+        //
+        // }
 
-        if !children.is_empty() {
-            for item in children.iter() {
-                Matrix::post_fill_parent_nodes(arc!(item));
+        // let res = ;
+
+        // if let Some(found) = matrix
+        //     .read()
+        //     .unwrap()
+        //     .children_groups
+        //     .iter()
+        //     .flatten()
+        //     .find(|s| s.read().unwrap().value.id == id)
+        // {
+        //     return Ok(arc!(found));
+        // }
+
+        //
+        // for child in matrix.read().unwrap().children_groups.iter().flatten() {
+        //     if let Ok(child) = Matrix::get_by_id(id.clone(), arc!(child)) {
+        //         return Ok(child);
+        //     }
+        // }
+
+        // let mut children = vec![];
+        // let mut error_count = 0usize;
+        //
+        // for (group_idx, group) in matrix.read().unwrap().children_groups.iter().enumerate() {
+        //     for (idx, item) in group.iter().enumerate() {
+        //         let item_id = item.read().unwrap().value.id.clone();
+        //
+        //         if item_id == id {
+        //             return Ok(arc!(item));
+        //         } else {
+        //             if !item.read().unwrap().children_groups.is_empty() {
+        //                 item.read()
+        //                     .unwrap()
+        //                     .children_groups
+        //                     .iter()
+        //                     .flatten()
+        //                     .map(|s| children.push(arc!(s)));
+        //             }
+        //         }
+        //
+        //         error_count + 1;
+        //     }
+        // }
+        //
+        // if !children.is_empty() {
+        //     for child in children {
+        //         match Matrix::get_by_id(id.clone(), child) {
+        //             Ok(x) => return Ok(x),
+        //             Err(msg) => {
+        //                 error_count + msg;
+        //             }
+        //         }
+        //     }
+        // }
+        //
+        // Err(error_count)
+    }
+
+    pub fn fix_idx_pos(matrix: Arc<RwLock<Matrix>>) -> Arc<RwLock<Matrix>> {
+        for (group_idx, group) in matrix.read().unwrap().children_groups.iter().enumerate() {
+            for (idx, item) in group.iter().enumerate() {
+                let iidx = item.read().unwrap().value.item_idx;
+                let gidx = item.read().unwrap().value.group_idx;
+
+                if iidx != idx || gidx != group_idx {
+                    item.write().unwrap().value.item_idx = idx;
+                    item.write().unwrap().value.group_idx = group_idx;
+                }
+
+                Matrix::fix_idx_pos(arc!(item));
             }
         }
 
         matrix
-    }
-
-    pub fn pre_from_backend_matrix(m: BackendMatrix) -> Arc<RwLock<Matrix>> {
-        let mut matrix_value = MatrixValue {
-            id: m.value.id,
-            parent_matrix: None,
-            group_idx: m.value.group_idx,
-            item_idx: m.value.item_idx,
-            depth: m.value.depth,
-            data: m.value.data,
-        };
-
-        let mut children_groups = vec![];
-
-        for (gidx, group) in m.children_groups.iter().enumerate() {
-            let mut group_list = vec![];
-
-            for (idx, item) in group.iter().enumerate() {
-                group_list.insert(
-                    idx,
-                    Matrix::pre_from_backend_matrix(item.read().unwrap().clone()),
-                )
-            }
-
-            children_groups.insert(gidx, group_list);
-        }
-
-        Arc::new(RwLock::new(Self {
-            children_groups,
-            value: matrix_value,
-        }))
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MatrixValue {
     pub id: Uuid,
-    pub parent_matrix: Option<Arc<RwLock<Matrix>>>,
+    pub parent_matrix: Option<Box<MatrixValue>>,
     pub group_idx: usize,
     pub item_idx: usize,
     pub depth: usize,
     pub data: MatrixData,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackendMatrixValue {
-    pub id: Uuid,
-    pub parent_matrix: Option<Box<BackendMatrixValue>>,
-    pub group_idx: usize,
-    pub item_idx: usize,
-    pub depth: usize,
-    pub data: MatrixData,
-}
-
-impl From<MatrixValue> for BackendMatrixValue {
-    fn from(m: MatrixValue) -> Self {
-        let parent_matrix = if let Some(parent) = m.parent_matrix {
-            Some(Box::new(parent.read().unwrap().value.clone().into()))
-        } else {
-            None
-        };
-
-        Self {
-            id: m.id,
-            parent_matrix,
-            group_idx: m.group_idx,
-            item_idx: m.item_idx,
-            depth: m.depth,
-            data: m.data,
-        }
-    }
 }
 
 impl PartialEq for MatrixValue {
@@ -234,7 +219,7 @@ impl Matrix {
                     matrix_handle
                         .children_groups
                         .push(vec![Arc::new(RwLock::new(Matrix::void(
-                            Some(arc!(target)),
+                            Some(Box::new(target.read().unwrap().value.clone())),
                             i,
                             0,
                             next_depth,
@@ -289,190 +274,7 @@ impl Matrix {
         }
 
         Ok(())
-        //
-        // num_offer_groups = matrix_handle.children_groups.len() - 1;
-        // if max_num_ctas == num_offer_groups {
-        //     return Ok(());
-        // } else if max_num_ctas > num_offer_groups {
-        //     let difference_to_add = max_num_ctas - num_offer_groups;
-        //     for i in 0..difference_to_add {
-        //         matrix_handle
-        //             .children_groups
-        //             .push(vec![Arc::new(RwLock::new(Matrix::void(
-        //                 Some(arc!(parent_node)),
-        //                 i + num_offer_groups,
-        //                 0,
-        //                 next_depth,
-        //             )))]);
-        //     }
-        // } else if max_num_ctas < num_offer_groups {
-        //     for i in (max_num_ctas..num_offer_groups).rev() {
-        //         matrix_handle.children_groups.remove(i);
-        //     }
-        // }
-        //
-        // let mut max_num_ctas = 0usize;
-        // let mut num_offer_groups = 0usize;
-        //
-        // for item in matrix_handle.children_groups.get(0).unwrap() {
-        //     if let MatrixData::LandingPage(lp) = item.read().expect("H^gGdf").data() {
-        //         if lp.number_of_calls_to_action as usize > max_num_ctas {
-        //             max_num_ctas = lp.number_of_calls_to_action as usize;
-        //         }
-        //     }
-        // }
-        //
-        // num_offer_groups = matrix_handle.children_groups.len() - 1;
-        //
-        // if num_offer_groups == max_num_ctas {
-        //     Ok(())
-        // } else {
-        //     Err("Synchronization failed:FV534 ".to_string())
-        // }
     }
-
-    // pub fn search_next_depth<'a, I>(
-    //     i: I,
-    //     target: Arc<RwLock<Matrix>>,
-    //     target_depth: usize,
-    // // ) -> Result<&'a mut Matrix, String>
-    // ) -> Result<Arc<RwLock<Matrix>>, String>
-    // where
-    //     I: Iterator<Item = Arc<RwLock<Matrix>>>,
-    // {
-    //     let mut cache = vec![];
-    //
-    //     for item in i.map(|s| s).collect::<Vec<_>>() {
-    //         let item = item.read().expect("%GTfs");
-    //
-    //         if item.value.depth == target_depth {
-    //
-    //             if target == item.value.id.as_ref() {
-    //                 return Ok(item);
-    //             } else {
-    //                 cache.push(item);
-    //             }
-    //         } else {
-    //             cache.push(item);
-    //         }
-    //     }
-    //
-    //     let mut iter = vec![];
-    //
-    //     for item in cache {
-    //         for group in item.children_groups.iter_mut() {
-    //             for group_item in group {
-    //                 iter.push(group_item)
-    //             }
-    //         }
-    //     }
-    //
-    //     if iter.is_empty() {
-    //         let depth_count = target_depth;
-    //         let msg = format!("No more child nodes: {} depth", depth_count);
-    //         return Err(msg);
-    //     }
-    //
-    //     Matrix::search_next_depth(iter.into_iter(), target, target_depth + 1)
-    // }
-
-    // pub fn get_mut_depth_target_lock(
-    //     &mut self,
-    //     target: &Uuid,
-    //     depth: usize,
-    // ) -> Option<&mut Matrix> {
-    //     None
-    // }
-    //
-    // pub fn depth_target_lock(&self, target: &Uuid, depth: usize) -> Option<MatrixValue> {
-    //     let iter = Bft::new(self, |node| node.children_groups.iter().flatten());
-    //     let mut iter = iter.map(|(depth, node)| (depth, &node.value));
-    //
-    //     while let Some((depth_found, item)) = iter.next() {
-    //         if depth_found == depth {
-    //             if item.id.as_ref() == target {
-    //                 return Some(item.clone());
-    //             }
-    //         }
-    //     }
-    //     None
-    // }
-
-    // pub fn target_lock(&self, target: &Uuid) -> Option<MatrixValue> {
-    //     let iter = DftLongestPaths::new(self, |s| s.children_groups.iter().flatten());
-    //     let mut iter = iter.map(|s| s.iter().map(|s| &s.value).collect::<Vec<_>>());
-    //
-    //     while let Some(path) = iter.next() {
-    //         for item in path {
-    //             if item.id.as_ref() == target {
-    //                 return Some(item.clone());
-    //             }
-    //         }
-    //     }
-    //     None
-    // }
-
-    // pub fn has_children_in_groups(&self) -> bool {
-    //     let iter = Bft::new(self, |s| self.children_groups.iter().flatten());
-    //
-    //     let mut iter = iter.map(|(d, m)| (d, m.value.clone()));
-    //
-    //     while let Some((depth, node)) = iter.next() {
-    //         if node.item_idx > 0 {
-    //             return true;
-    //         }
-    //     }
-    //     false
-    // }
-
-    // pub fn max_depth_exceeded(&self) -> bool {
-    //     let iter = DftLongestPaths::new(self, |s| s.children_groups.iter().flatten());
-    //     let mut iter = iter.map(|s| s.iter().map(|s| s.value.clone()).collect::<Vec<_>>());
-    //
-    //     for path in iter.next() {
-    //         if path.len() > 9 {
-    //             return true;
-    //         }
-    //     }
-    //     false
-    // }
-    //
-    // pub fn get_max_depth(&self) -> usize {
-    //     let iter = DftLongestPaths::new(self, |s| s.children_groups.iter().flatten());
-    //     let mut iter = iter.map(|s| s.iter().map(|s| s.value.clone()).collect::<Vec<_>>());
-    //
-    //     let mut max = 0usize;
-    //     for path in iter.next() {
-    //         if path.len() > max {
-    //             max = path.len();
-    //         }
-    //     }
-    //     max
-    // }
-    //
-    // pub fn get_mut_flattened_children(&mut self) -> Vec<&mut Matrix> {
-    //     self.children_groups
-    //         .iter_mut()
-    //         .flatten()
-    //         .map(|s| s)
-    //         .collect::<Vec<_>>()
-    // }
-    //
-    // pub fn get_flattened_children(&self) -> Vec<&Matrix> {
-    //     self.children_groups
-    //         .iter()
-    //         .flatten()
-    //         .map(|s| s)
-    //         .collect::<Vec<_>>()
-    // }
-
-    // pub fn get_parent_node(&self) -> Option<Arc<RwLock<MatrixValue>>> {
-    //     if let Some(p) = &self.value.parent_matrix {
-    //         Some(arc!(p))
-    //     } else {
-    //         None
-    //     }
-    // }
 
     pub fn item_idx(&self) -> usize {
         self.value.item_idx
@@ -481,14 +283,6 @@ impl Matrix {
     pub fn group_idx(&self) -> usize {
         self.value.group_idx
     }
-    //
-    // pub fn parent_id(&self) -> Option<&Uuid> {
-    //     if let Some(n) = &self.value.parent_matrix {
-    //         Some(&n.read().expect("GRTf").value.id)
-    //     } else {
-    //         None
-    //     }
-    // }
 
     pub fn id(&self) -> &Uuid {
         &self.value.id
@@ -504,7 +298,7 @@ impl Matrix {
 
     pub fn source() -> Arc<RwLock<Self>> {
         let mut matrix = Arc::new(RwLock::new(Self {
-            children_groups: vec![vec![]],
+            children_groups: vec![],
             value: MatrixValue {
                 id: Uuid::new_v4(),
                 parent_matrix: None,
@@ -515,16 +309,19 @@ impl Matrix {
             },
         }));
 
+        let parent_matrix = Some(Box::new(matrix.read().unwrap().value.clone()));
+
         matrix
             .write()
             .expect("G%FDfg")
             .children_groups
             .push(vec![Arc::new(RwLock::new(Matrix::void(
-                Some(arc!(matrix)),
+                parent_matrix,
                 0,
                 0,
                 1,
             )))]);
+
         matrix
     }
 
@@ -562,7 +359,7 @@ impl Matrix {
     }
 
     pub fn void(
-        parent_matrix: Option<Arc<RwLock<Matrix>>>,
+        parent_matrix: Option<Box<MatrixValue>>,
         group_idx: usize,
         item_idx: usize,
         depth: usize,
@@ -582,96 +379,8 @@ impl Matrix {
         }
     }
 }
+
 pub enum Transform {
     Offer(Offer),
     Lander(LandingPage),
 }
-// impl From<Offer> for Matrix {
-//     fn from(o: Offer) -> Self {
-//         Self {
-//             child_group: vec![],
-//             value: Either::Right(o),
-//         }
-//     }
-// }
-// impl From<LandingPage> for Matrix {
-//     fn from(lp: LandingPage) -> Self {
-//         let mut group_list = vec![];
-//         for i in 0..lp.number_of_calls_to_action {
-//             group_list.push(vec![])
-//         }
-//
-//         Self {
-//             child_group: group_list,
-//             value: Either::Left(lp),
-//         }
-//     }
-// }
-
-// impl From<LandingPage> for Either<LandingPage, Offer> {
-//     fn from(lp: LandingPage) -> Self {
-//         Either::Left(lp)
-//     }
-// }
-// impl From<Offer> for Either<LandingPage, Offer> {
-//     fn from(off: Offer) -> Self {
-//         Either::Right(off)
-//     }
-// }
-
-// impl Matrix {
-
-//
-//     pub fn empty_children(&self) -> Option<Vec<usize>> {
-//         if let Either::Left(lp) = &self.value {
-//             let mut empty_count = vec![];
-//             self.child_group.iter().enumerate().map(|(idx, s)| {
-//                 if s.is_empty() {
-//                     empty_count.push(idx);
-//                 }
-//             });
-//             if empty_count.is_empty() {
-//                 None
-//             } else {
-//                 Some(empty_count)
-//             }
-//         } else {
-//             None
-//         }
-//     }
-//
-//     pub fn add_landing_page(&mut self, group_index: usize, new: LandingPage) {
-//         self.child_group
-//             .get_mut(group_index)
-//             .unwrap()
-//             .push(new.into())
-//     }
-//
-//     pub fn add_offer(&mut self, group_index: usize, new: Offer) {
-//         self.child_group
-//             .get_mut(group_index)
-//             .unwrap()
-//             .push(new.into())
-//     }
-//
-//     pub fn new(elem: Either<LandingPage, Offer>) -> Self {
-//         match elem {
-//             Either::Left(lp) => {
-//                 let mut child_group = vec![];
-//
-//                 for i in 0..lp.number_of_calls_to_action {
-//                     child_group.push(vec![])
-//                 }
-//
-//                 Self {
-//                     child_group,
-//                     value: Either::Left(lp),
-//                 }
-//             }
-//
-//             Either::Right(off) => Self {
-//                 child_group: vec![],
-//                 value: Either::Right(off),
-//             },
-//         }
-//     }

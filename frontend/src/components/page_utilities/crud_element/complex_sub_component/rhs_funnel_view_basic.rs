@@ -78,6 +78,7 @@ impl Component for RHSFunnelViewBasic {
     }
 
     fn view(&self) -> Html {
+        notify_danger("fhs funnel vew");
         html! {
         <>
                                 <div class="uk-margin">

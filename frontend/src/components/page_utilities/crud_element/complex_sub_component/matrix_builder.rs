@@ -26,11 +26,11 @@ use yew_services::StorageService;
 use uuid::Uuid;
 use crate::components::page_utilities::update_element::Msg::Update;
 use crate::components::page_utilities::crud_element::crud_funnels::CRUDFunnel;
-use crate::components::page_utilities::crud_element::complex_sub_component::matrix_builder_utils::remove_matrix::remove_matrix;
 
 pub type RootMatrix = Rc<RefCell<Matrix>>;
 
 pub enum Msg {
+    RemoveChild(Uuid),
     UpdateMatrix(UpdateMatrix),
     UpdateWeight(InputData),
     Ignore,
@@ -50,6 +50,9 @@ pub struct Props {
     pub state: STATE,
     pub seq_type: SequenceType,
     pub sequence_builder_link: Rc<Scope<RHSSequenceBuilder>>,
+    #[prop_or_default]
+    pub remove_child: Option<Callback<Uuid>>,
+    // pub
 }
 
 pub struct MatrixBuilder {
@@ -79,6 +82,57 @@ impl Component for MatrixBuilder {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
+            Msg::RemoveChild(id) => {
+                notify_danger(format!("removing: {}", &id).as_str());
+                notify_danger(
+                    format!(
+                        "b:{}",
+                        &self
+                            .props
+                            .local_matrix
+                            .read()
+                            .unwrap()
+                            .children_groups
+                            .iter()
+                            .flatten()
+                            .collect::<Vec<_>>()
+                            .len()
+                    )
+                    .as_str(),
+                );
+
+                for group in self
+                    .props
+                    .local_matrix
+                    .write()
+                    .unwrap()
+                    .children_groups
+                    .iter_mut()
+                {
+                    group.retain(|s| s.read().unwrap().value.id.clone() != id);
+                }
+
+                notify_danger(
+                    format!(
+                        "a:{}",
+                        &self
+                            .props
+                            .local_matrix
+                            .read()
+                            .unwrap()
+                            .children_groups
+                            .iter()
+                            .flatten()
+                            .collect::<Vec<_>>()
+                            .len()
+                    )
+                    .as_str(),
+                );
+                self.props
+                    .sequence_builder_link
+                    .send_message(SeqMsg::UpdateRootMatrix(arc!(self.props.root_matrix)));
+            }
+
             Msg::UpdateMatrix(update) => {
                 match update {
                     UpdateMatrix::FillVoid(trans) => match trans {
@@ -86,6 +140,7 @@ impl Component for MatrixBuilder {
                             self.props.local_matrix.write().expect("G53greg").value.data =
                                 MatrixData::Offer(offer);
                         }
+
                         Transform::Lander(lp) => {
                             if let SequenceType::LandingPageAndOffers = self.props.seq_type {
                                 let offer_groups =
@@ -106,13 +161,16 @@ impl Component for MatrixBuilder {
                                         notify_danger(
                                             format!("New Group Idx: {}", &new_group_idx).as_str(),
                                         );
+
+                                        let parent_matrix =
+                                            self.props.root_matrix.read().unwrap().value.clone();
                                         self.props
                                             .root_matrix
                                             .write()
                                             .unwrap()
                                             .children_groups
                                             .push(vec![Arc::new(RwLock::new(Matrix::void(
-                                                Some(arc!(self.props.root_matrix)),
+                                                Some(Box::new(parent_matrix)),
                                                 new_group_idx,
                                                 0,
                                                 1,
@@ -127,6 +185,10 @@ impl Component for MatrixBuilder {
                                 let ctas = lp.number_of_calls_to_action as usize;
                                 self.props.local_matrix.write().expect("G53greg").value.data =
                                     MatrixData::LandingPage(lp);
+
+                                let parent_matrix =
+                                    self.props.local_matrix.read().unwrap().value.clone();
+
                                 for i in 0..ctas {
                                     let new_group_idx = i;
                                     let depth =
@@ -138,7 +200,7 @@ impl Component for MatrixBuilder {
                                         .unwrap()
                                         .children_groups
                                         .push(vec![Arc::new(RwLock::new(Matrix::void(
-                                            Some(arc!(self.props.local_matrix)),
+                                            Some(Box::new(parent_matrix.clone())),
                                             new_group_idx,
                                             0,
                                             depth,
@@ -165,36 +227,61 @@ impl Component for MatrixBuilder {
                     }
 
                     UpdateMatrix::Remove => {
-                        match remove_matrix(&self.props.seq_type, arc!(self.props.local_matrix)) {
-                            Ok(_) => notify_danger("Success"),
-                            Err(e) => notify_danger(format!("{}", e).as_str()),
-                        }
+                        notify_danger("remove");
+                        self.props
+                            .remove_child
+                            .as_ref()
+                            .unwrap()
+                            .emit(self.props.local_matrix.read().unwrap().value.id.clone());
+                        // let x = Matrix::get_all_paths(arc!(self.props.root_matrix), None);
+                        // notify_danger(
+                        //     format!(
+                        //         "{:?}",
+                        //         &self.props.root_matrix.read().unwrap().children_groups.len()
+                        //     )
+                        //     .as_str(),
+                        // );
+                        //
+                        // match Matrix::remove_matrix(
+                        //     arc!(self.props.local_matrix),
+                        //     arc!(self.props.root_matrix),
+                        // ) {
+                        //     Ok(x) => notify_danger("rm success"),
+                        //     Err(m) => notify_danger(&m),
+                        // }
+
+                        // match remove_matrix(&self.props.seq_type, arc!(self.props.local_matrix)) {
+                        //     Ok(_) => notify_danger("Success"),
+                        //     Err(e) => notify_danger(format!("{}", e).as_str()),
+                        // }
                     }
 
                     UpdateMatrix::Add(group_idx) => {
-                        let parent_node = arc!(self.props.local_matrix);
+                        notify_danger(format!("{}", &group_idx).as_str());
+                        let parent_node = self.props.local_matrix.read().unwrap().value.clone();
+
                         let mut local_matrix_handle =
                             self.props.local_matrix.write().expect("%^fd");
                         let dept = local_matrix_handle.value.depth;
 
                         if let Some(group) = local_matrix_handle.children_groups.get_mut(group_idx)
                         {
-                            group.insert(
+                            notify_danger(format!("before: {}", &group.len()).as_str());
+                            let new = Arc::new(RwLock::new(Matrix::void(
+                                Some(Box::new(parent_node)),
                                 group_idx,
-                                Arc::new(RwLock::new(Matrix::void(
-                                    Some(parent_node),
-                                    group_idx,
-                                    group.len(),
-                                    dept + 1,
-                                ))),
-                            )
+                                group.len(),
+                                dept + 1,
+                            )));
+                            group.push(new);
+                            notify_danger(format!("before: {}", &group.len()).as_str());
                         } else {
                             notify_danger("No group, Adding new...");
                             let new_group_idx = local_matrix_handle.children_groups.len();
                             local_matrix_handle
                                 .children_groups
                                 .push(vec![Arc::new(RwLock::new(Matrix::void(
-                                    Some(arc!(parent_node)),
+                                    Some(Box::new(parent_node)),
                                     new_group_idx,
                                     0,
                                     dept + 1,
@@ -251,6 +338,7 @@ impl MatrixBuilder {
                     let remove_callback = self
                         .link
                         .callback(move |_| Msg::UpdateMatrix(UpdateMatrix::Remove));
+
                     VNode::from(html! {
                                 <tr uk-tooltip="title:Please Fill Out;" style="background:#ffcccb;" >
                                     <td class="uk-table-expand">
@@ -310,11 +398,7 @@ impl MatrixBuilder {
 
                 SequenceType::Matrix => {
                     let depth = self.props.local_matrix.read().expect("%GSDF").depth();
-                    let depth_border = format!(
-                        "background:#ffcccb;",
-                        // "border-left-style:solid;border-left-color:{};background:#ffcccb;",
-                        // color_depth_border(depth)
-                    );
+                    let depth_border = format!("background:#ffcccb;",);
 
                     let transform_to_lander_cb = self.link.callback(move |lp: LandingPage| {
                         Msg::UpdateMatrix(UpdateMatrix::FillVoid(Transform::Lander(lp)))
@@ -329,21 +413,31 @@ impl MatrixBuilder {
                         .callback(|_| Msg::UpdateMatrix(UpdateMatrix::Remove));
 
                     let group_idx = self.props.local_matrix.read().unwrap().value.group_idx;
-                    let offers_in_group = self
-                        .props
-                        .local_matrix
-                        .read()
-                        .unwrap()
-                        .value
-                        .parent_matrix
-                        .as_ref()
-                        .unwrap()
-                        .read()
-                        .unwrap()
-                        .children_groups
-                        .get(group_idx)
-                        .unwrap()
-                        .len();
+
+                    let offers_in_group = if let Ok(parent) = Matrix::get_by_id(
+                        self.props
+                            .local_matrix
+                            .read()
+                            .unwrap()
+                            .value
+                            .parent_matrix
+                            .as_ref()
+                            .unwrap()
+                            .id
+                            .clone(),
+                        arc!(self.props.root_matrix),
+                    ) {
+                        parent
+                            .read()
+                            .unwrap()
+                            .children_groups
+                            .get(group_idx)
+                            .unwrap()
+                            .len()
+                    } else {
+                        notify_danger("ERR");
+                        0usize
+                    };
 
                     if self.props.local_matrix.read().expect("5gsdfg").depth() < 9 {
                         VNode::from(html! {
@@ -397,9 +491,12 @@ impl MatrixBuilder {
 
                 for matrix in offer_children {
                     let local_matrix = arc!(matrix);
+                    let lid = local_matrix.read().unwrap().value.id.clone();
+                    let rmc = self.link.callback(move |_| Msg::RemoveChild(lid));
 
                     offer_children_nodes.push(html! {
                         <MatrixBuilder
+                        remove_child=Some(rmc)
                         root_matrix=arc!(self.props.root_matrix)
                         local_matrix=local_matrix
                         state=rc!(self.props.state)
@@ -460,8 +557,13 @@ impl MatrixBuilder {
 
                     for (item_idx, item) in group.iter().enumerate() {
                         let local_matrix = arc!(item);
+                        let lid = item.read().unwrap().value.id.clone();
+
+                        let rmc = self.link.callback(move |_| Msg::RemoveChild(lid));
+
                         items.push(html! {
                                 <MatrixBuilder
+                            remove_child=Some(rmc)
                                 root_matrix=arc!(self.props.root_matrix)
                                 local_matrix=local_matrix
                                 state=rc!(self.props.state)
@@ -593,10 +695,14 @@ impl MatrixBuilder {
 
                 for (idx, source_matrix) in matrix_handle.children_groups.iter().enumerate() {
                     if let Some(local_matrix) = source_matrix.get(0) {
+                        let lid = local_matrix.read().unwrap().value.id.clone();
+                        let rmc = self.link.callback(move |_| Msg::RemoveChild(lid));
+
                         matrices.push(VNode::from(html! {
                     <div class="uk-margin-top">
                               {label!(&format!("Matrix #{}", idx + 1))}
                                 <MatrixBuilder
+                            remove_child=Some(rmc)
                                 root_matrix=arc!(self.props.root_matrix)
                                 local_matrix=arc!(local_matrix)
                                 state=rc!(self.props.state)
