@@ -5,7 +5,7 @@ docker-volume-reset:
 	ssh ad_buy_engine@72.14.190.165 'docker-compose down && docker volume rm campaign_server_storage && docker volume create --name=campaign_server_storage'
 
 update-frontend:
-	make build-secure-frontend && make docker-down && make upload-frontend && make docker-up && firefox -new-tab "https://adbuyengine.com/secure/"
+	docker-compose down && make build-secure-frontend && docker-compose up -d && firefox -new-tab "127.0.0.1:8081/secure/"
 
 update-migration:
 	make docker-down && make upload-migrations && make docker-up

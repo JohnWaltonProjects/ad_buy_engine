@@ -1,6 +1,6 @@
 use crate::data::elements::campaign::CampaignDestinationType;
 use crate::data::elements::landing_page::LandingPage;
-use crate::data::elements::matrix::Matrix;
+use crate::data::elements::matrix::{BackendMatrix, Matrix};
 use crate::data::elements::offer::Offer;
 use crate::data::lists::click_transition_method::RedirectOption;
 use crate::data::lists::condition::Condition;
@@ -82,7 +82,7 @@ pub struct Sequence {
     pub sequence_type: SequenceType,
     pub redirect_option: RedirectOption,
     pub referrer_handling: ReferrerHandling,
-    pub matrix: Arc<RwLock<Matrix>>,
+    pub matrix: BackendMatrix,
     pub weight_optimization_active: bool,
     pub sequence_is_active: bool,
 }
@@ -157,6 +157,10 @@ impl Sequence {
 
 impl Default for Sequence {
     fn default() -> Self {
+        let m = Matrix::source();
+        let m = m.read().unwrap();
+        let bm = BackendMatrix::from_matrix(m.clone());
+
         Self {
             id: Uuid::new_v4(),
             name: "".to_string(),
@@ -164,7 +168,7 @@ impl Default for Sequence {
             sequence_type: SequenceType::OffersOnly,
             redirect_option: RedirectOption::Redirect,
             referrer_handling: ReferrerHandling::DoNothing,
-            matrix: Matrix::source(),
+            matrix: bm,
             weight_optimization_active: false,
             sequence_is_active: false,
         }

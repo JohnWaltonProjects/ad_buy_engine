@@ -14,7 +14,7 @@ use crate::notify_danger;
 use crate::utils::javascript::js_bindings::toggle_uk_dropdown;
 use ad_buy_engine::data::elements::funnel::{ConditionalSequence, Sequence, SequenceType};
 use ad_buy_engine::data::elements::landing_page::LandingPage;
-use ad_buy_engine::data::elements::matrix::{Matrix, MatrixData};
+use ad_buy_engine::data::elements::matrix::{BackendMatrix, Matrix, MatrixData};
 use ad_buy_engine::data::elements::offer::Offer;
 use ad_buy_engine::data::lists::referrer_handling::ReferrerHandling;
 use ad_buy_engine::Country;
@@ -111,7 +111,8 @@ impl Component for RHSSequenceBuilder {
 
             Msg::UpdateRootMatrix(root_matrix) => {
                 if let Some(mut sequence) = self.return_active_sequence().cloned() {
-                    sequence.matrix = arc!(root_matrix);
+                    sequence.matrix =
+                        BackendMatrix::from_matrix(root_matrix.read().unwrap().clone());
                     self.props.update_sequence.emit(sequence);
                 } else {
                     notify_danger("Err: Could not extract active sequence")
@@ -140,7 +141,10 @@ impl Component for RHSSequenceBuilder {
                     if let Some(old_seq) = self.props.default_sequences.iter().find(|s| &s.id == id)
                     {
                         if new_seq.sequence_type != old_seq.sequence_type {
-                            let arc_matrix = arc!(new_seq.matrix);
+                            let mut arc_matrix =
+                                Matrix::pre_from_backend_matrix(new_seq.matrix.clone());
+                            arc_matrix = Matrix::post_fill_parent_nodes(arc_matrix);
+
                             let mut matrix = arc_matrix.write().expect("G%Rf");
                             matrix.children_groups.clear();
                             matrix
@@ -166,7 +170,9 @@ impl Component for RHSSequenceBuilder {
                         {
                             if let Some(old_seq) = old_c.sequences.iter().find(|s| &s.id == id) {
                                 if new_seq.sequence_type != old_seq.sequence_type {
-                                    let arc_matrix = arc!(new_seq.matrix);
+                                    let mut arc_matrix =
+                                        Matrix::pre_from_backend_matrix(new_seq.matrix.clone());
+                                    arc_matrix = Matrix::post_fill_parent_nodes(arc_matrix);
                                     let mut matrix = arc_matrix.write().expect("G%Rf");
                                     matrix.children_groups.clear();
                                     matrix.children_groups.push(vec![Arc::new(RwLock::new(
@@ -285,7 +291,9 @@ impl RHSSequenceBuilder {
 
     pub fn render_view(&self) -> VNode {
         if let Some(sequence) = self.return_active_sequence() {
-            let local_matrix = arc!(sequence.matrix);
+            let mut local_matrix = Matrix::pre_from_backend_matrix(sequence.matrix.clone());
+            local_matrix = Matrix::post_fill_parent_nodes(local_matrix);
+
             let root_matrix = arc!(local_matrix);
 
             VNode::from(html! {

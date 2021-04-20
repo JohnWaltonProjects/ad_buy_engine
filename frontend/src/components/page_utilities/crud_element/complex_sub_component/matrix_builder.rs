@@ -26,6 +26,7 @@ use yew_services::StorageService;
 use uuid::Uuid;
 use crate::components::page_utilities::update_element::Msg::Update;
 use crate::components::page_utilities::crud_element::crud_funnels::CRUDFunnel;
+use crate::components::page_utilities::crud_element::complex_sub_component::matrix_builder_utils::remove_matrix::remove_matrix;
 
 pub type RootMatrix = Rc<RefCell<Matrix>>;
 
@@ -164,87 +165,9 @@ impl Component for MatrixBuilder {
                     }
 
                     UpdateMatrix::Remove => {
-                        let target_item_id = self
-                            .props
-                            .local_matrix
-                            .read()
-                            .expect("g5rtsfdgF")
-                            .value
-                            .id
-                            .clone();
-
-                        let target_group_idx = self
-                            .props
-                            .local_matrix
-                            .read()
-                            .expect("g5rtsfdgF")
-                            .group_idx();
-
-                        if let Some(parent) = &self
-                            .props
-                            .local_matrix
-                            .read()
-                            .expect("g5rtsfdgF")
-                            .value
-                            .parent_matrix
-                        {
-                            let parent_node = arc!(parent);
-
-                            if let Some(group) = parent_node
-                                .write()
-                                .expect("%Gdff")
-                                .children_groups
-                                .get_mut(target_group_idx)
-                            {
-                                group.retain(|s| {
-                                    s.read().expect("%Gdsfg").value.id.clone() != target_item_id
-                                });
-                                if group.len() == 0 {
-                                    group.push(Arc::new(RwLock::new(Matrix::void(
-                                        Some(arc!(parent_node)),
-                                        target_group_idx,
-                                        0,
-                                        1,
-                                    ))));
-                                }
-                            } else {
-                                notify_danger("Group not found")
-                            };
-
-                            // Remove Offer groups if needed
-                            if let SequenceType::LandingPageAndOffers = self.props.seq_type {
-                                let highest_cta = Matrix::highest_cta(
-                                    &self
-                                        .props
-                                        .root_matrix
-                                        .read()
-                                        .unwrap()
-                                        .children_groups
-                                        .get(0)
-                                        .unwrap(),
-                                );
-                                let num_of_offer_groups =
-                                    self.props.root_matrix.read().unwrap().children_groups.len()
-                                        - 1;
-
-                                if num_of_offer_groups > highest_cta {
-                                    let mut diff_to_rm = num_of_offer_groups - highest_cta;
-                                    for i in (0..diff_to_rm).rev() {
-                                        let idx_to_rm = i + 1;
-                                        // notify_danger(
-                                        //     format!("Idx to Remove: {}", &idx_to_rm).as_str(),
-                                        // );
-                                        self.props
-                                            .root_matrix
-                                            .write()
-                                            .unwrap()
-                                            .children_groups
-                                            .remove(idx_to_rm);
-                                    }
-                                }
-                            }
-                        } else {
-                            notify_danger("no parent");
+                        match remove_matrix(&self.props.seq_type, arc!(self.props.local_matrix)) {
+                            Ok(_) => notify_danger("Success"),
+                            Err(e) => notify_danger(format!("{}", e).as_str()),
                         }
                     }
 
@@ -549,7 +472,7 @@ impl MatrixBuilder {
                     }
 
                     let btn_txt = if group_idx == 0 {
-                        format!("Add Depth 1 Element")
+                        format!("Add Variant")
                     } else {
                         format!("Add to Offer Group {}", group_idx)
                     };
@@ -562,12 +485,12 @@ impl MatrixBuilder {
                         .link
                         .callback(move |_| Msg::UpdateMatrix(UpdateMatrix::Add(group_idx)));
                     let group_headline = if group_idx == 0 {
-                        VNode::from(html! {<h4 class="uk-margin-small">{"Depth 1 Elements"}</h4>})
+                        VNode::from(html! {<h4 class="uk-margin-small">{"Level 1 Elements"}</h4>})
                     } else {
                         if group_idx == 1 {
                             VNode::from(html! {
                                 <>
-                            <h4 class="uk-margin-small">{"Depth 2 Elements"}</h4>
+                            <h4 class="uk-margin-small">{"Level 2 Elements"}</h4>
                             <h5 class="uk-margin-small">{format!("Offer Group {}", group_idx)}</h5>
                                 </>
                             })
@@ -577,13 +500,18 @@ impl MatrixBuilder {
                             )
                         }
                     };
+                    let style = if group_idx != 0 {
+                        format!("border:2px dashed {};", COLOR_BLUE)
+                    } else {
+                        format!("")
+                    };
 
                     nodes.push(VNode::from(html! {
                         <>
                             // {top_divider}
                             {group_headline}
                             <button onclick=add_cb class="uk-button uk-button-small uk-button-primary">{btn_txt}</button>
-                            <div class="uk-overflow-auto">
+                            <div class="uk-overflow-auto" style=style>
                                 <table class="uk-table uk-table-hover uk-table-middle uk-table-divider">
                                     {self.table_head()}
                                             <tbody>
@@ -614,24 +542,27 @@ impl MatrixBuilder {
                 let weight_value = self.weight_buff.to_string();
 
                 let group_idx = matrix_handle.value.group_idx;
-                let depth_border = if group_idx == 0 {
-                    format!(
-                        "border-left-style:solid;border-left-color:{};",
-                        color_depth_border(1)
-                    )
-                } else {
-                    format!(
-                        "border-left-style:solid;border-left-color:{};",
-                        color_depth_border(2)
-                    )
-                };
+
+                // let depth_border = if group_idx == 0 {
+                //     format!("")
+                // format!(
+                //     "border-left-style:solid;border-left-color:{};",
+                //     color_depth_border(1)
+                // )
+                // } else {
+                //     format!("border:2px dashed {};", COLOR_BLUE)
+                // format!(
+                //     "border-left-style:solid;border-left-color:{};",
+                //     color_depth_border(2)
+                // )
+                // };
 
                 match matrix_data {
                     MatrixData::LandingPage(lp) => {
                         let num_cta = lp.number_of_calls_to_action;
 
                         VNode::from(html! {
-                                    <tr style=depth_border>
+                                    <tr >
                                         <td class="uk-text-truncate" uk-tooltip={format!("title:{};", &lp.name)}>{format!("{}", &lp.name)}</td>
                                         <td class="uk-text-nowrap">{"Lander"}</td>
                                         <td class="uk-text-nowrap">{num_cta}</td>
@@ -640,8 +571,9 @@ impl MatrixBuilder {
                                     </tr>
                         })
                     }
+
                     MatrixData::Offer(offer) => VNode::from(html! {
-                                <tr style=depth_border>
+                                <tr >
                                     <td class="uk-text-truncate" uk-tooltip={format!("title:{};", &offer.name)}>{format!("{}", &offer.name)}</td>
                                     <td class="uk-text-nowrap">{"Offer"}</td>
                                     <td class="uk-text-nowrap">{"NA"}</td>

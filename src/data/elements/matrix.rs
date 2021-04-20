@@ -50,9 +50,98 @@ impl PartialEq for Matrix {
 // }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackendMatrix {
+    pub children_groups: Vec<Vec<Arc<RwLock<Self>>>>,
+    pub value: BackendMatrixValue,
+}
+
+impl BackendMatrix {
+    pub fn from_matrix(m: Matrix) -> Self {
+        let mut children_groups = vec![];
+
+        for (group_idx, group) in m.children_groups.iter().enumerate() {
+            let mut group_list = vec![];
+
+            for (idx, item) in group.iter().enumerate() {
+                let m = item.read().unwrap();
+                let bm = BackendMatrix::from_matrix(m.clone());
+
+                group_list.insert(idx, Arc::new(RwLock::new(bm)))
+            }
+
+            children_groups.push(group_list);
+        }
+
+        let value = m.value.into();
+
+        Self {
+            children_groups,
+            value,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Matrix {
     pub children_groups: Vec<Vec<Arc<RwLock<Self>>>>,
     pub value: MatrixValue,
+}
+
+impl Matrix {
+    pub fn post_fill_parent_nodes(matrix: Arc<RwLock<Matrix>>) -> Arc<RwLock<Matrix>> {
+        let parent_node = arc!(matrix);
+        let mut children = vec![];
+
+        for (gidx, group) in matrix.read().unwrap().children_groups.iter().enumerate() {
+            for (idx, item) in group.iter().enumerate() {
+                let rest_parent = &item.write().unwrap().value.parent_matrix;
+                if let &None = rest_parent {
+                    item.write().unwrap().value.parent_matrix = Some(arc!(parent_node))
+                }
+
+                children.push(arc!(item))
+            }
+        }
+
+        if !children.is_empty() {
+            for item in children.iter() {
+                Matrix::post_fill_parent_nodes(arc!(item));
+            }
+        }
+
+        matrix
+    }
+
+    pub fn pre_from_backend_matrix(m: BackendMatrix) -> Arc<RwLock<Matrix>> {
+        let mut matrix_value = MatrixValue {
+            id: m.value.id,
+            parent_matrix: None,
+            group_idx: m.value.group_idx,
+            item_idx: m.value.item_idx,
+            depth: m.value.depth,
+            data: m.value.data,
+        };
+
+        let mut children_groups = vec![];
+
+        for (gidx, group) in m.children_groups.iter().enumerate() {
+            let mut group_list = vec![];
+
+            for (idx, item) in group.iter().enumerate() {
+                group_list.insert(
+                    idx,
+                    Matrix::pre_from_backend_matrix(item.read().unwrap().clone()),
+                )
+            }
+
+            children_groups.insert(gidx, group_list);
+        }
+
+        Arc::new(RwLock::new(Self {
+            children_groups,
+            value: matrix_value,
+        }))
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -63,6 +152,35 @@ pub struct MatrixValue {
     pub item_idx: usize,
     pub depth: usize,
     pub data: MatrixData,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackendMatrixValue {
+    pub id: Uuid,
+    pub parent_matrix: Option<Box<BackendMatrixValue>>,
+    pub group_idx: usize,
+    pub item_idx: usize,
+    pub depth: usize,
+    pub data: MatrixData,
+}
+
+impl From<MatrixValue> for BackendMatrixValue {
+    fn from(m: MatrixValue) -> Self {
+        let parent_matrix = if let Some(parent) = m.parent_matrix {
+            Some(Box::new(parent.read().unwrap().value.clone().into()))
+        } else {
+            None
+        };
+
+        Self {
+            id: m.id,
+            parent_matrix,
+            group_idx: m.group_idx,
+            item_idx: m.item_idx,
+            depth: m.depth,
+            data: m.data,
+        }
+    }
 }
 
 impl PartialEq for MatrixValue {

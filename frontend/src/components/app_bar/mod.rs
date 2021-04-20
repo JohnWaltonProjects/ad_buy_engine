@@ -1,12 +1,12 @@
 mod logout;
 
 use crate::appstate::app_state::STATE;
+use crate::utils::javascript::clean_all_modals;
 use crate::utils::routes::AppRoute;
 use logout::Logout;
 use yew::prelude::*;
 use yew_router::agent::RouteAgent;
 use yew_router::agent::RouteRequest::ChangeRoute;
-use crate::utils::javascript::clean_all_modals;
 
 pub enum Msg {
     RouteAccount,
@@ -69,7 +69,7 @@ impl Component for AppBar {
         <nav class="uk-navbar-container" uk-navbar="">
             <div class="uk-navbar-left"  >
 
-                <img class="logo uk-navbar-item uk-logo" src="/secure/assets/logo.svg"/>
+                <img class="logo uk-navbar-item uk-logo" src="/assets/logo.svg"/>
 
                 <ul class="uk-navbar-nav">
                     <li class="uk-active"><a onclick=self.link.callback(|_|Msg::RouteDashboard) >{"Ad Buy Engine"}</a></li>

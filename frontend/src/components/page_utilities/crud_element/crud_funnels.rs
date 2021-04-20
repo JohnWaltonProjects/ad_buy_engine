@@ -74,7 +74,7 @@ use crate::components::page_utilities::crud_element::complex_sub_component::lhs_
 use crate::components::page_utilities::crud_element::complex_sub_component::rhs_funnel_view::RHSFunnelView;
 use ad_buy_engine::data::lists::condition::Condition;
 use ad_buy_engine::constant::{COLOR_BLUE, COLOR_GRAY};
-use ad_buy_engine::data::elements::matrix::Matrix;
+use ad_buy_engine::data::elements::matrix::{Matrix, BackendMatrix};
 
 pub enum Msg {
     Ignore,
@@ -378,7 +378,9 @@ impl Component for CRUDFunnel {
                                     sequence_type: SequenceType::OffersOnly,
                                     redirect_option: RedirectOption::Redirect,
                                     referrer_handling: ReferrerHandling::DoNothing,
-                                    matrix: Matrix::source(),
+                                    matrix: BackendMatrix::from_matrix(
+                                        Matrix::source().read().unwrap().clone(),
+                                    ),
                                     weight_optimization_active: false,
                                     sequence_is_active: true,
                                 })
@@ -397,7 +399,9 @@ impl Component for CRUDFunnel {
                             sequence_type: SequenceType::OffersOnly,
                             redirect_option: RedirectOption::Redirect,
                             referrer_handling: ReferrerHandling::DoNothing,
-                            matrix: Matrix::source(),
+                            matrix: BackendMatrix::from_matrix(
+                                Matrix::source().read().unwrap().clone(),
+                            ),
                             weight_optimization_active: false,
                             sequence_is_active: true,
                         });
@@ -552,7 +556,9 @@ impl Component for CRUDFunnel {
 
 impl CRUDFunnel {
     pub fn fetch(&self) -> Option<FetchTask> {
+        notify_danger("Submitting...");
         let data = if let ModalType::Create = self.props.modal_type {
+            notify_danger("Create");
             CRUDElementRequest::Create(PrimeElementBuild::Funnel(Funnel {
                 funnel_id: Uuid::new_v4(),
                 account_id: self
