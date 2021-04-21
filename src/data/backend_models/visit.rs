@@ -19,6 +19,20 @@ use uuid::Uuid;
 #[cfg_attr(
     feature = "backend",
     derive(Queryable, Insertable, AsChangeset, Identifiable),
+    table_name = "click_identity",
+    primary_key("id")
+)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct ClickIdentityModal {
+    pub visit_record_id: String,
+    pub user_agent: String,
+    pub ip: String,
+    pub click_map: String,
+}
+
+#[cfg_attr(
+    feature = "backend",
+    derive(Queryable, Insertable, AsChangeset, Identifiable),
     table_name = "visits",
     primary_key("id")
 )]
@@ -29,23 +43,15 @@ pub struct VisitModel {
     pub campaign_id: String,
     pub traffic_source_id: String,
     pub funnel_id: String,
-    pub pre_sell_landing_page_id: String,
-    pub landing_page_ids: String,
-    pub offer_ids: String,
     pub impressions_from_traffic_source: String,
-    pub tracking_link_clicks: String,
-    pub pre_landing_page_clicks: String,
-    pub landing_page_clicks: String,
-    pub offer_clicks: String,
+    pub clicks: String,
     pub referrer: String,
-    pub traffic_source_parameters: String,
-    pub redirection_time: String,
+    pub parameters: String,
     pub click_map: String,
     pub user_agent_data: String,
     pub geo_ip_data: String,
     pub conversions: String,
     pub custom_conversions: String,
-    pub click_is_suspicious: bool,
     pub last_updated: i64,
 }
 
@@ -138,32 +144,18 @@ impl From<VisitModel> for Visit {
             campaign_id: Uuid::parse_str(&visit_model.campaign_id).expect("G%sdgff"),
             traffic_source_id: Uuid::parse_str(&visit_model.traffic_source_id).expect("G%45sdf"),
             funnel_id: serde_json::from_str(&visit_model.funnel_id).expect("F43sdaf"),
-            pre_sell_landing_page_id: serde_json::from_str(&visit_model.pre_sell_landing_page_id)
-                .expect("G%$sdf"),
-            landing_page_ids: serde_json::from_str(&visit_model.landing_page_ids).expect("GT%fd"),
-            offer_ids: serde_json::from_str(&visit_model.offer_ids).expect("H^gdsf"),
             impressions_from_traffic_source: serde_json::from_str(
                 &visit_model.impressions_from_traffic_source,
             )
             .expect("Gf45sf"),
-            tracking_link_clicks: serde_json::from_str(&visit_model.tracking_link_clicks)
-                .expect("G%sf"),
-            pre_landing_page_clicks: serde_json::from_str(&visit_model.pre_landing_page_clicks)
-                .expect("GH%tsf"),
-            landing_page_clicks: serde_json::from_str(&visit_model.landing_page_clicks)
-                .expect("g54sdf"),
-            offer_clicks: serde_json::from_str(&visit_model.offer_clicks).expect("G%sdf"),
+            clicks: serde_json::from_str(&visit_model.clicks).expect("G%sdf"),
             referrer: serde_json::from_str(&visit_model.referrer).expect("G%sdf"),
-            traffic_source_parameters: serde_json::from_str(&visit_model.traffic_source_parameters)
-                .expect("GT%sf"),
-            redirection_time: serde_json::from_str(&visit_model.redirection_time).expect("GTsf"),
             click_map: serde_json::from_str(&visit_model.click_map).expect("GTfx"),
             user_agent_data: serde_json::from_str(&visit_model.user_agent_data).expect("h76gfe"),
             geo_ip_data: serde_json::from_str(&visit_model.geo_ip_data).expect("uyhgfd"),
             conversions: serde_json::from_str(&visit_model.conversions).expect("GH%^sf"),
             custom_conversions: serde_json::from_str(&visit_model.custom_conversions)
                 .expect("gfdssf"),
-            click_is_suspicious: visit_model.click_is_suspicious,
             last_updated: DateTime::<Utc>::from_utc(
                 NaiveDateTime::from_timestamp(visit_model.last_updated, 0),
                 Utc,

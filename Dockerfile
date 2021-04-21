@@ -17,6 +17,8 @@ RUN apt-get update -y && \
 
 COPY migrations /app/migrations
 COPY static /app/static
+COPY GeoLite2-ASN.mmdb /app/GeoLite2-ASN.mmdb
+COPY GeoLite2-City.mmdb /app/GeoLite2-City.mmdb
 COPY ./bin/campaign_server /app
 COPY .env /app
 

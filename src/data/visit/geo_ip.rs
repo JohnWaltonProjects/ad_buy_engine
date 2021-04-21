@@ -29,25 +29,31 @@ pub struct GeoIPData {
 }
 
 impl GeoIPData {
-    pub fn new(ip: IpAddr, path_to_db: &str) -> Self {
-        let city_reader =
-            maxminddb::Reader::open_readfile(format!("{}GeoLite2-City.mmdb", path_to_db))
-                .expect("F3442");
-        // maxminddb::Reader::open_readfile("../../../GeoLite2-City.mmdb").expect("F32");
-        let asn_reader =
-            maxminddb::Reader::open_readfile(format!("{}GeoLite2-ASN.mmdb", path_to_db))
-                .expect("Fdd32");
+    pub fn new(ip: IpAddr) -> Self {
+        let city_reader = maxminddb::Reader::open_readfile("GeoLite2-City.mmdb").expect("F3442");
+        // let asn_reader = maxminddb::Reader::open_readfile("GeoLite2-ASN.mmdb").expect("Fdd32");
+        // let country_reader =
+        //     maxminddb::Reader::open_readfile("GeoLite2-Country.mmdb").expect("Fdd32");
 
         let city: City = city_reader.lookup(ip).expect("fds");
-        let isp: Isp = asn_reader.lookup(ip).expect("fdds");
-        let ct: ConnectionType = asn_reader.lookup(ip).expect("fdds");
+
+        let isp: Isp = city_reader.lookup(ip).expect("fdds");
+
+        let ct: ConnectionType = city_reader.lookup(ip).expect("fdds");
+
         let traits: Traits = city_reader.lookup(ip).expect("fdds");
+
         let anonymous_ip: AnonymousIp = city_reader.lookup(ip).expect("fdds");
+
         let density: DensityIncome = city_reader.lookup(ip).expect("fdds");
 
         let city_name = if let Some(c) = city.city {
             if let Some(n) = c.names {
-                n.get("en").expect("Gg3")
+                if let Some(n) = n.get("en") {
+                    n
+                } else {
+                    ""
+                }
             } else {
                 ""
             }
@@ -205,18 +211,18 @@ impl GeoIPData {
 
         Self {
             ip,
-            city: "".to_string(),
-            continent: "".to_string(),
-            country_iso_code: "".to_string(),
-            subdivision_iso_code: "".to_string(),
-            time_zone: "".to_string(),
+            city: city_name.to_string(),
+            continent: continent.to_string(),
+            country_iso_code: country_iso_code.to_string(),
+            subdivision_iso_code: subdivision_iso_code.to_string(),
+            time_zone: time_zone.to_string(),
             latitude,
             longitude,
             metro_code,
-            postal_code: "".to_string(),
-            asn: "".to_string(),
-            isp: "".to_string(),
-            connection_type: "".to_string(),
+            postal_code: postal_code.to_string(),
+            asn: asn.to_string(),
+            isp: isp.to_string(),
+            connection_type: connection_type.to_string(),
             is_anonymous_proxy,
             is_anonymous,
             is_anonymous_vpn,

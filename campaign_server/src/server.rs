@@ -86,6 +86,8 @@ pub async fn server() -> std::io::Result<()> {
                 println!("\n");
                 srv.call(req).map(|res| res)
             })
+            .service(resource("/extra/{}"))
+            .service(resource("/extra"))
             .service(resource("/{campaign_id}").route(get().to(process_click)))
             .configure(public_routes)
             .configure(private_routes)
@@ -100,7 +102,7 @@ pub async fn server() -> std::io::Result<()> {
     })
     .bind("campaign_server:80")?
     // .bind_openssl("campaign_server:443", ssl_config())?
-    .workers(4)
+    .workers(1)
     .run();
 
     server.await

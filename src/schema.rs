@@ -49,6 +49,15 @@ table! {
 }
 
 table! {
+    click_identity (visit_record_id) {
+        visit_record_id -> Varchar,
+        user_agent -> Varchar,
+        ip -> Varchar,
+        click_map -> Varchar,
+    }
+}
+
+table! {
     emails (id) {
         id -> Varchar,
     }
@@ -219,6 +228,7 @@ table! {
 allow_tables_to_appear_in_same_query!(
     accounts,
     campaigns,
+    click_identity,
     emails,
     funnels,
     invitation,

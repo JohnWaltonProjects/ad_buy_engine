@@ -1,4 +1,5 @@
 use chrono::NaiveDateTime;
+use url::Url;
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -9,8 +10,16 @@ pub struct ClickEvent {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct TerseElement {
+    pub element_id: Uuid,
+    pub lander_url: Option<Url>,
+    pub group_idx: usize,
+    pub item_idx: usize,
+    pub depth: usize,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum ClickableElement {
-    PreLandingPage(Uuid),
-    LandingPage(Uuid),
-    Offer(Uuid),
+    LandingPage(TerseElement),
+    Offer(TerseElement),
 }

@@ -60,6 +60,18 @@ services:
       - type: bind
         source: ./bin/campaign_server
         target: /app/campaign_server
+      - type: bind
+        source: ./GeoLite2-City.mmdb
+        target: /app/GeoLite2-City.mmdb
+      - type: bind
+        source: ./GeoLite2-ASN.mmdb
+        target: /app/GeoLite2-ASN.mmdb
+      - type: bind
+        source: ./GeoLite2-Country.mmdb
+        target: /app/GeoLite2-Country.mmdb
+      - type: bind
+        source: ./regexes.yaml
+        target: /app/regexes.yaml
 
 volumes:
   campaign_db_data:

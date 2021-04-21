@@ -101,8 +101,8 @@ impl ClickMap {
         campaign: &Campaign,
         geo_ip: &GeoIPData,
         ua_data: &UserAgentData,
-        parameters: HashMap<String, String>,
-        referrer_url: Url,
+        parameters: &HashMap<String, String>,
+        referrer_url: Option<Url>,
     ) -> Self {
         match &campaign.campaign_core {
             Either::Left(funnel) => {

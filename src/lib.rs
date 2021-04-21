@@ -27,7 +27,8 @@ pub mod constant;
 pub mod data;
 
 pub mod string_manipulation;
-
+pub use maxminddb;
+pub use url::Url;
 #[cfg(feature = "backend")]
 pub mod schema;
 

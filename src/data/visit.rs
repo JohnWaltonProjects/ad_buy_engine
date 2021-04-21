@@ -11,12 +11,14 @@ use geo_ip::GeoIPData;
 use user_agent::UserAgentData;
 
 use crate::data::custom_events::CustomConversionEvent;
+use crate::data::elements::campaign::Campaign;
 use crate::data::live_campaign::LiveCampaign;
 use crate::data::visit::click_event::ClickEvent;
 use crate::data::visit::click_map::ClickMap;
 use crate::data::visit::conversion::Conversion;
 use crate::AError;
 use chrono::{DateTime, NaiveDateTime, Utc};
+use either::Either;
 use std::time::Duration;
 use url::Url;
 
@@ -37,24 +39,44 @@ pub struct Visit {
     pub campaign_id: Uuid,
     pub traffic_source_id: Uuid,
     pub funnel_id: Option<Uuid>,
-    pub pre_sell_landing_page_id: Option<Uuid>,
-    pub landing_page_ids: Vec<Uuid>,
-    pub offer_ids: Vec<Uuid>,
     pub impressions_from_traffic_source: u64,
-    pub tracking_link_clicks: u32,
-    pub pre_landing_page_clicks: Vec<ClickEvent>,
-    pub landing_page_clicks: Vec<ClickEvent>,
-    pub offer_clicks: Vec<ClickEvent>,
+    pub clicks: Vec<ClickEvent>,
     pub referrer: Url,
-    pub traffic_source_parameters: HashMap<String, String>,
-    pub redirection_time: Duration,
+    pub parameters: HashMap<String, String>,
     pub click_map: ClickMap,
     pub user_agent_data: UserAgentData,
     pub geo_ip_data: GeoIPData,
     pub conversions: Vec<Conversion>,
     pub custom_conversions: Vec<CustomConversionEvent>,
-    pub click_is_suspicious: bool,
     pub last_updated: DateTime<Utc>,
+}
+
+impl Visit {
+    pub fn new(c: &Campaign, g: GeoIPData, u: UserAgentData, r:Url, p:HashMap<String,String>, cm:ClickMap) -> Self {
+        let funnel_id = if let Either::Left(funnel) = &c.campaign_core {
+            Some(funnel.funnel_id.clone())
+        } else {
+            None
+        };
+
+        Self {
+            id: Utc::now().timestamp_nanos(),
+            account_id: c.account_id.clone(),
+            campaign_id: c.campaign_id.clone(),
+            traffic_source_id: c.traffic_source.traffic_source_id.clone(),
+            funnel_id,
+            impressions_from_traffic_source:0,
+            clicks:vec![],
+            referrer:r,
+            parameters:p,
+            click_map: cm,
+            user_agent_data:u
+            geo_ip_data:g,
+            conversions:vec![],
+            custom_conversions:vec![],
+            last_updated:Utc::now(),
+        }
+    }
 }
 
 //

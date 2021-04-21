@@ -1,3 +1,4 @@
+use crate::data::backend_models::visit::ClickIdentityModal;
 use crate::data::visit::click_map::ClickMap;
 use crate::data::visit::Visit;
 use std::net::IpAddr;
@@ -9,6 +10,29 @@ pub struct ClickIdentity {
     pub user_agent: String,
     pub ip: IpAddr,
     pub click_map: ClickMap,
+}
+
+use std::str::FromStr;
+impl From<ClickIdentityModal> for ClickIdentity {
+    fn from(c: ClickIdentityModal) -> Self {
+        Self {
+            visit_record_id: Uuid::parse_str(&c.visit_record_id).expect("HG^tfsd"),
+            user_agent: c.user_agent,
+            ip: IpAddr::from_str(&c.ip).expect("G%6tsdf"),
+            click_map: serde_json::from_str(&c.click_map).expect("TRGF"),
+        }
+    }
+}
+
+impl From<ClickIdentity> for ClickIdentityModal {
+    fn from(c: ClickIdentity) -> Self {
+        Self {
+            visit_record_id: c.visit_record_id.to_string(),
+            user_agent: c.user_agent,
+            ip: c.ip.to_string(),
+            click_map: serde_json::to_string(&c.click_map).expect("%^YHGdsfg"),
+        }
+    }
 }
 
 // impl VisitIdentity {
