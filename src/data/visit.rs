@@ -41,7 +41,7 @@ pub struct Visit {
     pub funnel_id: Option<Uuid>,
     pub impressions_from_traffic_source: u64,
     pub clicks: Vec<ClickEvent>,
-    pub referrer: Url,
+    pub referrer: Option<Url>,
     pub parameters: HashMap<String, String>,
     pub click_map: ClickMap,
     pub user_agent_data: UserAgentData,
@@ -52,7 +52,7 @@ pub struct Visit {
 }
 
 impl Visit {
-    pub fn new(c: &Campaign, g: GeoIPData, u: UserAgentData, r:Url, p:HashMap<String,String>, cm:ClickMap) -> Self {
+    pub fn new(c: &Campaign, g: GeoIPData, u: UserAgentData, r:Option<Url>, p:HashMap<String,String>, cm:ClickMap) -> Self {
         let funnel_id = if let Either::Left(funnel) = &c.campaign_core {
             Some(funnel.funnel_id.clone())
         } else {

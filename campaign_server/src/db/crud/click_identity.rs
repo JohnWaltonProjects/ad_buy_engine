@@ -5,6 +5,7 @@ use ad_buy_engine::data::backend_models::campaign::CampaignModel;
 use ad_buy_engine::data::backend_models::visit::ClickIdentityModal;
 use ad_buy_engine::data::elements::campaign::Campaign;
 use ad_buy_engine::data::visit::visit_identity::ClickIdentity;
+use chrono::Utc;
 use diesel::insert_into;
 use diesel::prelude::*;
 use diesel::query_builder::IntoUpdateTarget;
@@ -34,12 +35,21 @@ pub fn update_click_identity(
     )
 }
 
-pub fn create_click_identity(
-    pool: &PgPool,
-    payload: ClickIdentityModal,
-) -> Result<ClickIdentityModal, ApiError> {
-    use crate::schema::click_identity::dsl::click_identity;
-    Ok(insert_into(click_identity)
-        .values(payload)
+pub fn get_click_identity(pool: &PgPool, id: &Uuid) -> Result<ClickIdentityModal, ApiError> {
+    use crate::schema::click_identity::dsl::{click_identity, visit_record_id};
+    Ok(click_identity
+        .find(id.to_string())
         .get_result::<ClickIdentityModal>(&pool.get()?)?)
+}
+
+pub fn load_click_identities_for_cache(pool: &PgPool) -> Result<Vec<ClickIdentity>, ApiError> {
+    use crate::schema::click_identity::dsl::{click_identity, visit_record_id};
+    let mut cut_off = Utc::now().timestamp_nanos();
+    cut_off - 200_000;
+
+    let res: Vec<ClickIdentityModal> = click_identity
+        .filter(visit_record_id > cut_off)
+        .load::<ClickIdentityModal>(&pool.get()?)?;
+
+    Ok(res.iter().map(|s| s.into()).collect::<Vec<ClickIdentity>>())
 }

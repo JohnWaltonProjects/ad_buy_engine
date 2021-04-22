@@ -19,8 +19,9 @@ use std::str::FromStr;
 use std::sync::Mutex;
 use uuid::Uuid;
 use ad_buy_engine::data::visit::Visit;
+use ad_buy_engine::data::visit::visit_identity::ClickIdentity;
 
-pub async fn process_click(
+pub async fn process_initial_click(
     req: HttpRequest,
     pool: Data<PgPool>,
     app_state: Data<Mutex<HashMap<Uuid, Campaign>>>,
@@ -28,9 +29,7 @@ pub async fn process_click(
     campaign_id: Path<Uuid>,
     traffic_source_parameters: Query<HashMap<String, String>>,
 ) -> Result<HttpResponse, ApiError> {
-    // try if visit identity exists then modify that visit record
-    // if existing visit ident and new campaign id, new visit?
-    redis.send(Command)
+    
     if let Some(found) = find_campaign(campaign_id.into_inner(), app_state, &pool) {
         let ua = req.headers().get(USER_AGENT).unwrap().to_str().unwrap();
         let ip = req.peer_addr().unwrap().ip();
@@ -58,18 +57,14 @@ pub async fn process_click(
             &geo_ip,
             &user_agent,
             &traffic_source_parameters,
-            referrer,
+            referrer.clone(),
         );
+
+        let  visit = Visit::new(&found, geo_ip, user_agent, referrer, traffic_source_parameters.into_inner(), click_map.clone());
+        let click_identity = ClickIdentity::new(visit.id,ua.to_string(), ip, cm);
+        crate::api::crud::click_identity::store::store_initial_click(click_map, redis.into_inner().as_ref(),pool, click_identity, visit)
         
-        let mut visit = Visit::new()
-
-
-        // build click map
-        // build visit
-        // visitor identity
-        //  save to redis
-        // send to agent to save identity to pg
-        /// setup redis recache on server start up
+        ///  save that data to visit before storing
 
         Ok(HttpResponse::Ok().finish())
     } else {
@@ -77,66 +72,4 @@ pub async fn process_click(
             "no campaign found in appstate".to_string(),
         ))
     }
-}
-
-
-pub async fn insert_click_identity(ua: &str, ip:IpAddr,cm:ClickMap, redis:Data<Addr<RedisActor>>) -> Result<(), ApiError> {
-let req=    redis.send(Command(resp_array!["SET", format!("{}{}", ua,ip).as_str(), serde_json::to_string(&cm).expect("TYgsdfg")]));
-    match req.await {
-        Ok(res)=>{
-            match res {
-                Ok(rv)=>{
-                    println!("{:?}",&rv);
-                    Ok(())
-                }
-                Err(e)=>{
-                    println!("{:?}",e);
-                    Err(ApiError::InternalServerError(format!("{:?}",e)))
-                }
-            }
-        }
-        Err(e)=>{
-            println!("{:?}",e);
-            Err(ApiError::InternalServerError(format!("redis err")))
-        }
-    }
-}
-
-pub async fn get_click_identity(ua: &str, ip:IpAddr, redis:Data<Addr<RedisActor>>) -> Result<ClickMap, ApiError> {
-    let req=    redis.send(Command(resp_array!["GET", format!("{}{}", ua,ip).as_str(), serde_json::to_string(&cm).expect("TYgsdfg")]));
-    match req.await {
-        Ok(res)=>{
-            match res {
-                Ok(rv)=>{
-                    println!("{:?}",&rv);
-                    
-                    if let RespValue::SimpleString(str)=rv  {
-                        if let Ok(cm) = serde_json::from_str(&str) {
-                            Ok(cm)
-                        } else {
-                            Err(ApiError::InternalServerError(format!("json serde err")))
-                        }
-                    } else {
-                        Err(ApiError::InternalServerError(format!("")))
-                    }
-                    
-                    Ok(rcv)
-                }
-                Err(e)=>{
-                    println!("{:?}",e);
-                    Err(ApiError::BadRequest(format!("{:?}",e)))
-                }
-            }
-        }
-        Err(e)=>{
-            println!("{:?}",e);
-            Err(ApiError::InternalServerError(format!("redis err")))
-        }
-    }
-}
-
-// find ident from database else insert it and add to cache
-
-pub async fn find_identity_from_database(){
-
 }

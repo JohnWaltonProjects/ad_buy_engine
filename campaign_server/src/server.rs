@@ -1,5 +1,7 @@
 use crate::api::click::process_click;
+use crate::api::crud::click_identity::store::create_click_identity;
 use crate::campaign_agent::CampaignAgent;
+use crate::db::crud::click_identity::load_click_identities_for_cache;
 use crate::helper_functions::{rate_limit, ssl_config};
 use crate::private_routes::private_routes;
 use crate::public_routes::public_routes;
@@ -12,6 +14,7 @@ use crate::utils::state::init_state;
 use actix_cors::Cors;
 use actix_files::Files;
 use actix_ratelimit::{MemoryStore, MemoryStoreActor, RateLimiter};
+use actix_redis::RedisActor;
 use actix_service::Service;
 use actix_web::client::Client;
 use actix_web::http::header;
@@ -45,6 +48,17 @@ pub async fn server() -> std::io::Result<()> {
     diesel_migrations::run_pending_migrations(&pool.clone().get().expect("hyuu"))
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
 
+    let cache = if let Ok(var) = std::env::var("REDIS_URL") {
+        let cache = RedisActor::start(&var);
+        cache
+    } else {
+        panic!("Redis URL env var not found")
+    };
+    let res = load_click_identities_for_cache(&pool)?;
+    println!("click identities number: {}", &res.len());
+    res.into_iter()
+        .map(|s| create_click_identity(&s.user_agent, s.ip, s.click_map, cache.clone()));
+
     let mut filtered_restored: Vec<Campaign> = {
         use crate::schema::campaigns::dsl::campaigns;
         campaigns
@@ -68,7 +82,7 @@ pub async fn server() -> std::io::Result<()> {
     let server = HttpServer::new(move || {
         App::new()
             // .wrap(RedirectSchemeBuilder::new().enable(true).build())
-            .configure(add_cache)
+            // .configure(add_cache)
             .wrap(
                 Cors::new()
                     .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT])
@@ -81,6 +95,7 @@ pub async fn server() -> std::io::Result<()> {
             .wrap(get_identity_service())
             .data(Client::new())
             .data(pool.clone())
+            .data(cache.clone())
             .app_data(app_state.clone())
             .wrap_fn(|req, srv| {
                 println!("\n");

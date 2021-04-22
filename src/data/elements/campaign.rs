@@ -69,6 +69,15 @@ pub struct Campaign {
 }
 
 impl Campaign {
+    // pub fn first_click_url(&self) ->Url {
+    //     match self.campaign_core {
+    //         Either::Left(funnel)=>{
+    //             funnel.
+    //         }
+    //         Either::Right(sequence)=>{}
+    //     }
+    // }
+
     pub fn campaign_url(&self, tracking_domain: &Url) -> String {
         let mut url = tracking_domain.clone();
         url.set_path(self.campaign_id.to_string().as_str());

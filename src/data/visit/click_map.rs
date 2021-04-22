@@ -16,6 +16,7 @@ use weighted_rs::{SmoothWeight, Weight};
 pub mod qualify_condition;
 use crate::data::visit::click_map::qualify_condition::condi_qualify;
 use qualify_condition::qualify_condition;
+use serde::de::Unexpected::Seq;
 // #[derive(Serialize, Deserialize, Clone, Debug)]
 // pub struct OfferClickMap {
 //     pub offer_id: Uuid,
@@ -40,40 +41,62 @@ use qualify_condition::qualify_condition;
 pub struct ClickMap {
     pub children: Vec<ClickMap>,
     pub value: MatrixValue,
+    pub seq_type: Option<SequenceType>,
 }
 
+pub fn select_child(group: &Vec<LiveMatrix>) -> LiveMatrix {
+    if group.len() == 1 {
+        group.first().expect("g53sdfg").clone()
+    } else {
+        let mut sw: SmoothWeight<usize> = SmoothWeight::new();
+        
+        for (idx, i) in group.iter().enumerate() {
+            let weight = match &i.value.data {
+                MatrixData::LandingPage(lp) => lp.weight as isize,
+                MatrixData::Offer(lp) => lp.weight as isize,
+                _ => 0isize,
+            };
+            sw.add(idx, weight);
+        }
+        
+        let selected_idx = sw.next().expect("G%dfs");
+        let selected = group.get(selected_idx).expect("T%Gsdf").clone();
+        
+        selected
+    }
+}
 impl ClickMap {
-    pub fn select_child(group: &Vec<LiveMatrix>) -> LiveMatrix {
-        if group.len() == 1 {
-            group.first().expect("g53sdfg").clone()
-        } else {
-            let mut sw: SmoothWeight<usize> = SmoothWeight::new();
-
-            for (idx, i) in group.iter().enumerate() {
-                let weight = match &i.value.data {
-                    MatrixData::LandingPage(lp) => lp.weight as isize,
-                    MatrixData::Offer(lp) => lp.weight as isize,
-                    _ => 0isize,
-                };
-                sw.add(idx, weight);
+    pub fn get_initial_click(&self) ->Result<Url, String> {
+        match self.seq_type.expect("GTsfd") {
+            SequenceType::OffersOnly=>{
+                if let MatrixData::Offer(offer)= &self.value.data {
+                    Ok(offer.url.clone())
+                } else {
+                    Err("matrix data not offer".to_string())
+                }
             }
-
-            let selected_idx = sw.next().expect("G%dfs");
-            let selected = group.get(selected_idx).expect("T%Gsdf").clone();
-
-            selected
+            
+            _=>{
+                if let MatrixData::LandingPage(lp)= &self.value.data {
+                    Ok(lp.url.clone())
+                } else {
+                    Err("matrix data not lander".to_string())
+                }
+            }
         }
     }
+    //
+
 
     pub fn select_children_recursively(m: LiveMatrix) -> Vec<ClickMap> {
         let mut nodes = vec![];
 
         for group in m.children_groups.iter() {
-            let select = Self::select_child(group);
+            let select = select_child(group);
             let value = select.value.clone();
             let children = Self::select_children_recursively(select);
 
-            let map = ClickMap { children, value };
+            let map = ClickMap { children, value, seq_type:None };
 
             nodes.push(map);
         }
@@ -81,11 +104,39 @@ impl ClickMap {
         nodes
     }
 
-    pub fn generate(matrix: LiveMatrix) -> ClickMap {
+    pub fn generate_matrix(matrix: LiveMatrix) -> ClickMap {
+        let matrix_group = matrix.children_groups.into_iter().flatten().collect::<Vec<_>>();
+        let selected_matrix = select_child(&matrix_group);
+        let value = selected_matrix.value.clone();
+        let mut selected_children = ClickMap::select_children_recursively(selected_matrix);
+    
+        Self { children:selected_children, value, seq_type:Some(SequenceType::Matrix) }
+    }
+    
+    pub fn generate_landing_page(matrix: LiveMatrix) -> ClickMap { // todo might need to add sequence type to cli9
         let value = matrix.value.clone();
-        let mut children = ClickMap::select_children_recursively(matrix);
-
-        Self { children, value }
+        let selected_lander = select_child(&matrix.children_groups.get(0).expect("THDFHV"));
+        let value = selected_lander.value;
+        
+        let selected_children = matrix.children_groups.iter().enumerate().filter(|(idx, i)| idx != 0).map(|(idx, s)| {
+            let selected_child = select_child(s);
+            let click_map = ClickMap{
+                children: vec![],
+                value: selected_child.value,
+                seq_type:None,
+            };
+            click_map
+        }).collect::<Vec<_>>();
+        
+        Self { children:selected_children, value, seq_type:Some(SequenceType::LandingPageAndOffers) }
+    }
+    
+    pub fn generate_offer(matrix: LiveMatrix) -> ClickMap {
+        let group = &matrix.children_groups.get(0).expect("SDAFG");
+        let selected = select_child(group);
+        let value = selected.value
+        
+        Self { children:vec![], value , seq_type:Some(SequenceType::OffersOnly)}
     }
 }
 
@@ -124,7 +175,7 @@ impl ClickMap {
         let live = LiveMatrix::from_matrix(&*matrix);
 
         match seq.sequence_type {
-            SequenceType::OffersOnly => ClickMap::generate(live),
+            SequenceType::OffersOnly => ClickMap::generate_offer(live),// may need to generate diff for each type?
             SequenceType::LandingPageAndOffers => ClickMap::generate(live),
             SequenceType::Matrix => ClickMap::generate(live),
         }

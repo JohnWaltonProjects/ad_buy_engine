@@ -50,7 +50,7 @@ table! {
 
 table! {
     click_identity (visit_record_id) {
-        visit_record_id -> Varchar,
+        visit_record_id -> Int8,
         user_agent -> Varchar,
         ip -> Varchar,
         click_map -> Varchar,

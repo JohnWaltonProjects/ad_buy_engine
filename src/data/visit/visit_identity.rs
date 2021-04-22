@@ -6,10 +6,21 @@ use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ClickIdentity {
-    pub visit_record_id: Uuid,
+    pub visit_record_id: i64,
     pub user_agent: String,
     pub ip: IpAddr,
     pub click_map: ClickMap,
+}
+
+impl ClickIdentity {
+    pub fn new(id: i64, ua: String, ip: IpAddr, cm: ClickMap) -> Self {
+        Self {
+            visit_record_id: id,
+            user_agent: ua,
+            ip: ip,
+            click_map: cm,
+        }
+    }
 }
 
 use std::str::FromStr;
