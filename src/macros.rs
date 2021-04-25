@@ -131,3 +131,10 @@ macro_rules! wrap_arc {
         Arc::new(RwLock::new($type))
     };
 }
+
+#[macro_export]
+macro_rules! new_string {
+    ($data:expr) => {{
+        String::from($data)
+    }};
+}

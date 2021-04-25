@@ -13,7 +13,7 @@ use user_agent::UserAgentData;
 use crate::data::custom_events::CustomConversionEvent;
 use crate::data::elements::campaign::Campaign;
 use crate::data::live_campaign::LiveCampaign;
-use crate::data::visit::click_event::ClickEvent;
+use crate::data::visit::click_event::{ClickEvent, ClickableElement};
 use crate::data::visit::click_map::ClickMap;
 use crate::data::visit::conversion::Conversion;
 use crate::AError;
@@ -52,12 +52,17 @@ pub struct Visit {
 }
 
 impl Visit {
-    pub fn new(c: &Campaign, g: GeoIPData, u: UserAgentData, r:Option<Url>, p:HashMap<String,String>, cm:ClickMap) -> Self {
+    pub fn push_click_event(&mut self, ce: ClickEvent){
+        self.clicks.push(ce);
+    }
+    
+    pub fn new(c: &Campaign, g: GeoIPData, u: UserAgentData, r:Option<Url>, p:HashMap<String,String>, cm:ClickMap, ce:ClickEvent) -> Self {
         let funnel_id = if let Either::Left(funnel) = &c.campaign_core {
             Some(funnel.funnel_id.clone())
         } else {
             None
         };
+        
 
         Self {
             id: Utc::now().timestamp_nanos(),
@@ -66,7 +71,7 @@ impl Visit {
             traffic_source_id: c.traffic_source.traffic_source_id.clone(),
             funnel_id,
             impressions_from_traffic_source:0,
-            clicks:vec![],
+            clicks:vec![ce],
             referrer:r,
             parameters:p,
             click_map: cm,

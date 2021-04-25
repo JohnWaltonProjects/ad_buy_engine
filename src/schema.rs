@@ -49,10 +49,9 @@ table! {
 }
 
 table! {
-    click_identity (visit_record_id) {
-        visit_record_id -> Int8,
-        user_agent -> Varchar,
-        ip -> Varchar,
+    click_identity (ua_ip_id) {
+        ua_ip_id -> Varchar,
+        visit_id -> Int8,
         click_map -> Varchar,
     }
 }
@@ -106,6 +105,14 @@ table! {
         weight -> Varchar,
         archived -> Bool,
         last_updated -> Int8,
+    }
+}
+
+table! {
+    linked_conversion (id) {
+        id -> Varchar,
+        campaign_id -> Varchar,
+        created_at -> Int8,
     }
 }
 
@@ -233,6 +240,7 @@ allow_tables_to_appear_in_same_query!(
     funnels,
     invitation,
     landing_pages,
+    linked_conversion,
     offer_sources,
     offers,
     traffic_sources,

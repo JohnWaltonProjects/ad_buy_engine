@@ -1,7 +1,7 @@
 pub mod account;
 pub mod auth;
+pub mod campaign_server_api;
 pub mod campaign_state;
-pub mod click;
 pub mod crud;
 pub mod crud_element;
 pub mod health;

@@ -455,7 +455,7 @@ impl CRUDOfferSource {
     }
     pub fn generate_tracking_code(&self) -> String {
         let conversion_tokens = format!(
-            "cid={}&pay={}&cvid={}{}",
+            "sid={}&pay={}&cvid={}{}",
             self.click_id_token(),
             self.payout_token(),
             self.conversion_id_token(),

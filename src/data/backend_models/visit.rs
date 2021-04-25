@@ -20,13 +20,12 @@ use uuid::Uuid;
     feature = "backend",
     derive(Queryable, Insertable, AsChangeset, Identifiable),
     table_name = "click_identity",
-    primary_key("id")
+    primary_key("ua_ip_id")
 )]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ClickIdentityModal {
-    pub visit_record_id: String,
-    pub user_agent: String,
-    pub ip: String,
+    pub ua_ip_id: String,
+    pub visit_id: i64,
     pub click_map: String,
 }
 

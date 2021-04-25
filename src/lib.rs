@@ -54,9 +54,18 @@ pub use crate::data::iso_language::{LanguageCode, ParseError as ISOLangParseErro
 use boyer_moore_magiclen::BMByte;
 use either::Either;
 pub use ipnet;
+use rand::Rng;
 pub use traversal;
 use uuid::Uuid;
 use weighted_rs::{SmoothWeight, Weight};
+
+pub fn generate_random_string(len: usize) -> String {
+    rand::thread_rng()
+        .sample_iter(&rand::distributions::Alphanumeric)
+        .take(len)
+        .map(char::from)
+        .collect()
+}
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct LoginRequest {

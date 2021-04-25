@@ -35,10 +35,10 @@ pub fn update_click_identity(
     )
 }
 
-pub fn get_click_identity(pool: &PgPool, id: &Uuid) -> Result<ClickIdentityModal, ApiError> {
-    use crate::schema::click_identity::dsl::{click_identity, visit_record_id};
+pub fn get_click_identity(pool: &PgPool, ua_ip_id: String) -> Result<ClickIdentityModal, ApiError> {
+    use crate::schema::click_identity::dsl::{click_identity, ua_ip_id};
     Ok(click_identity
-        .find(id.to_string())
+        .find(id)
         .get_result::<ClickIdentityModal>(&pool.get()?)?)
 }
 

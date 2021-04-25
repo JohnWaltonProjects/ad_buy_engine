@@ -1,2 +1,2 @@
-pub mod pg;
-pub mod store;
+pub mod read;
+pub mod write;

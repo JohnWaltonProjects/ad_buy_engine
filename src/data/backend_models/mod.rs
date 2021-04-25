@@ -3,6 +3,7 @@ pub mod campaign;
 pub mod funnel;
 pub mod invitation;
 pub mod landing_page;
+pub mod linked_conversion;
 pub mod live_campaign_table;
 pub mod offer;
 pub mod offer_source;
@@ -17,6 +18,7 @@ use super::backend_models::{
     traffic_source::TrafficSourceModel, user::UserModel, visit::VisitModel,
 };
 
+use crate::data::backend_models::linked_conversion::LinkedConversion;
 use crate::data::visit::visit_identity::ClickIdentity;
 #[cfg(feature = "backend")]
 use crate::schema::emails;
@@ -68,6 +70,7 @@ pub trait DatabaseCommunication<T> {
 
 #[cfg(feature = "backend")]
 impl_database_communication!(
+    LinkedConversion, linked_conversion
     ClickIdentity, click_identity
     VisitModel, visits
     AccountModel, accounts

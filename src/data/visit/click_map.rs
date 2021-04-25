@@ -17,6 +17,7 @@ pub mod qualify_condition;
 use crate::data::visit::click_map::qualify_condition::condi_qualify;
 use qualify_condition::qualify_condition;
 use serde::de::Unexpected::Seq;
+use crate::data::visit::click_event::{ClickEvent, ClickableElement, TerseElement};
 // #[derive(Serialize, Deserialize, Clone, Debug)]
 // pub struct OfferClickMap {
 //     pub offer_id: Uuid,
@@ -42,6 +43,7 @@ pub struct ClickMap {
     pub children: Vec<ClickMap>,
     pub value: MatrixValue,
     pub seq_type: Option<SequenceType>,
+    pub linked_conversion_id: Option<String>,
 }
 
 pub fn select_child(group: &Vec<LiveMatrix>) -> LiveMatrix {
@@ -65,12 +67,24 @@ pub fn select_child(group: &Vec<LiveMatrix>) -> LiveMatrix {
         selected
     }
 }
+
 impl ClickMap {
-    pub fn get_initial_click(&self) ->Result<Url, String> {
+    
+    pub fn find_node_in_matrix(&self,mid:&String) ->&Self {
+        let iter = Bft::new(self, |node| node.children.iter());
+        let mut iter = iter.map(|(depth, node)| (depth, node));
+        let res =iter.find(|(d, n)| {
+            n.value.id == mid
+        });
+        res.unwrap().1
+    }
+    
+    pub fn get_initial_click(&self) ->Result<(Url, ClickEvent), String> {
         match self.seq_type.expect("GTsfd") {
             SequenceType::OffersOnly=>{
                 if let MatrixData::Offer(offer)= &self.value.data {
-                    Ok(offer.url.clone())
+                    let ce = ClickEvent::create(ClickableElement::Offer(TerseElement::new(offer.offer_id.clone(), None)));
+                    Ok((offer.url.clone(), ce))
                 } else {
                     Err("matrix data not offer".to_string())
                 }
@@ -78,7 +92,8 @@ impl ClickMap {
             
             _=>{
                 if let MatrixData::LandingPage(lp)= &self.value.data {
-                    Ok(lp.url.clone())
+                    let ce = ClickEvent::create(ClickableElement::LandingPage(TerseElement::new(lp.landing_page_id.clone(), Some(lp.url.clone()))));
+                    Ok((offer.url.clone(), ce))
                 } else {
                     Err("matrix data not lander".to_string())
                 }
@@ -96,7 +111,7 @@ impl ClickMap {
             let value = select.value.clone();
             let children = Self::select_children_recursively(select);
 
-            let map = ClickMap { children, value, seq_type:None };
+            let map = ClickMap { children, value, seq_type:None,linked_conversion_id:None };
 
             nodes.push(map);
         }
@@ -124,6 +139,7 @@ impl ClickMap {
                 children: vec![],
                 value: selected_child.value,
                 seq_type:None,
+                linked_conversion_id:None
             };
             click_map
         }).collect::<Vec<_>>();
@@ -136,7 +152,7 @@ impl ClickMap {
         let selected = select_child(group);
         let value = selected.value
         
-        Self { children:vec![], value , seq_type:Some(SequenceType::OffersOnly)}
+        Self { children:vec![], value , seq_type:Some(SequenceType::OffersOnly), linked_conversion_id: None}
     }
 }
 

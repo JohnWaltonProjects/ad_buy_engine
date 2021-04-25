@@ -1,5 +1,5 @@
-use crate::api::click::process_click;
-use crate::api::crud::click_identity::store::create_click_identity;
+use crate::api::campaign_server_api::click::{process_click, process_initial_click};
+use crate::api::crud::click_identity::write::create_click_identity;
 use crate::campaign_agent::CampaignAgent;
 use crate::db::crud::click_identity::load_click_identities_for_cache;
 use crate::helper_functions::{rate_limit, ssl_config};
@@ -19,7 +19,7 @@ use actix_service::Service;
 use actix_web::client::Client;
 use actix_web::http::header;
 use actix_web::http::header::HOST;
-use actix_web::web::{get, resource, scope, Data, JsonConfig};
+use actix_web::web::{get, post, resource, scope, service, Data, JsonConfig};
 use actix_web::{middleware::Logger, App, HttpResponse, HttpServer};
 use actix_web_middleware_redirect_scheme::RedirectSchemeBuilder;
 use ad_buy_engine::constant::local_system_location::DIRECTORY_LOCATION_MAIN_PUBLIC_STATIC;
@@ -103,7 +103,8 @@ pub async fn server() -> std::io::Result<()> {
             })
             .service(resource("/extra/{}"))
             .service(resource("/extra"))
-            .service(resource("/{campaign_id}").route(get().to(process_click)))
+            .service(resource("/{campaign_id}").route(get().to(process_initial_click)))
+            .service(resource("/action").route(post().to(unimplemented!())))
             .configure(public_routes)
             .configure(private_routes)
             .service(

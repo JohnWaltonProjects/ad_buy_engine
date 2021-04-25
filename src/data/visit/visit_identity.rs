@@ -6,18 +6,16 @@ use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ClickIdentity {
-    pub visit_record_id: i64,
-    pub user_agent: String,
-    pub ip: IpAddr,
+    pub ua_ip_id: String,
+    pub visit_id: i64,
     pub click_map: ClickMap,
 }
 
 impl ClickIdentity {
-    pub fn new(id: i64, ua: String, ip: IpAddr, cm: ClickMap) -> Self {
+    pub fn new(visit_id: i64, ua: String, ip: IpAddr, cm: ClickMap) -> Self {
         Self {
-            visit_record_id: id,
-            user_agent: ua,
-            ip: ip,
+            ua_ip_id: format!("{}:{}", ua, ip),
+            visit_id,
             click_map: cm,
         }
     }
@@ -27,9 +25,8 @@ use std::str::FromStr;
 impl From<ClickIdentityModal> for ClickIdentity {
     fn from(c: ClickIdentityModal) -> Self {
         Self {
-            visit_record_id: Uuid::parse_str(&c.visit_record_id).expect("HG^tfsd"),
-            user_agent: c.user_agent,
-            ip: IpAddr::from_str(&c.ip).expect("G%6tsdf"),
+            ua_ip_id: c.ua_ip_id,
+            visit_id: c.visit_id,
             click_map: serde_json::from_str(&c.click_map).expect("TRGF"),
         }
     }
@@ -38,9 +35,8 @@ impl From<ClickIdentityModal> for ClickIdentity {
 impl From<ClickIdentity> for ClickIdentityModal {
     fn from(c: ClickIdentity) -> Self {
         Self {
-            visit_record_id: c.visit_record_id.to_string(),
-            user_agent: c.user_agent,
-            ip: c.ip.to_string(),
+            ua_ip_id: c.ua_ip_id,
+            visit_id: c.visit_id,
             click_map: serde_json::to_string(&c.click_map).expect("%^YHGdsfg"),
         }
     }

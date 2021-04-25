@@ -196,9 +196,9 @@ impl Component for MatrixBuilder {
                                 if let Some(query) = lp.url.query() {
                                     lp.url.set_query(Some(
                                         format!(
-                                            "{}&d={}",
+                                            "{}&mid={}",
                                             query,
-                                            self.props.local_matrix.read().unwrap().value.depth
+                                            &self.props.local_matrix.read().unwrap().value.id
                                         )
                                         .as_str(),
                                     ));
@@ -206,7 +206,7 @@ impl Component for MatrixBuilder {
                                     lp.url.set_query(Some(
                                         format!(
                                             "d={}",
-                                            self.props.local_matrix.read().unwrap().value.depth
+                                            &self.props.local_matrix.read().unwrap().value.id
                                         )
                                         .as_str(),
                                     ))
