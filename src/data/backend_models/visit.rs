@@ -56,6 +56,27 @@ pub struct VisitModel {
 
 #[cfg(feature = "backend")]
 impl VisitModel {
+    pub fn all_by_last_updated(acc_id: String, conn: &PgConnection) -> QueryResult<Vec<Self>> {
+        crate::schema::visits::dsl::visits
+            .filter(crate::schema::visits::dsl::account_id.eq(acc_id))
+            .order(crate::schema::visits::dsl::last_updated.desc())
+            .load::<Self>(conn)
+    }
+
+    pub fn all_for_account(acc_id: String, conn: &PgConnection) -> QueryResult<Vec<Self>> {
+        crate::schema::visits::dsl::visits
+            .filter(crate::schema::visits::dsl::account_id.eq(acc_id))
+            .load::<Self>(conn)
+    }
+
+    pub fn delete_all_for_account(acc_id: String, conn: &PgConnection) -> QueryResult<usize> {
+        diesel::delete(
+            crate::schema::visits::dsl::visits
+                .filter(crate::schema::visits::dsl::account_id.eq(acc_id)),
+        )
+        .execute(conn)
+    }
+
     pub fn new(new: Self, conn: &PgConnection) -> QueryResult<usize> {
         diesel::insert_into(crate::schema::visits::dsl::visits)
             .values(&new)
@@ -105,31 +126,34 @@ impl From<Visit> for VisitModel {
             campaign_id: visit.campaign_id.to_string(),
             traffic_source_id: visit.traffic_source_id.to_string(),
             funnel_id: serde_json::to_string(&visit.funnel_id).expect("G%sdfg"),
-            pre_sell_landing_page_id: serde_json::to_string(&visit.pre_sell_landing_page_id)
-                .expect("HGTsdfg"),
-            landing_page_ids: serde_json::to_string(&visit.landing_page_ids).expect("GH%Tsfd"),
-            offer_ids: serde_json::to_string(&visit.offer_ids).expect("GHTsdf"),
+            // pre_sell_landing_page_id: serde_json::to_string(&visit.pre_sell_landing_page_id)
+            //     .expect("HGTsdfg"),
+            // landing_page_ids: serde_json::to_string(&visit.landing_page_ids).expect("GH%Tsfd"),
+            // offer_ids: serde_json::to_string(&visit.offer_ids).expect("GHTsdf"),
             impressions_from_traffic_source: serde_json::to_string(
                 &visit.impressions_from_traffic_source,
             )
             .expect("Gfsdffg"),
-            tracking_link_clicks: serde_json::to_string(&visit.tracking_link_clicks)
-                .expect("a^sdf"),
-            pre_landing_page_clicks: serde_json::to_string(&visit.pre_landing_page_clicks)
-                .expect("gtsfd"),
-            landing_page_clicks: serde_json::to_string(&visit.landing_page_clicks)
-                .expect("YHtdcfgh"),
-            offer_clicks: serde_json::to_string(&visit.offer_clicks).expect("fdasdf4"),
-            referrer: serde_json::to_string(&visit.referrer).expect("hgfsffd"),
-            traffic_source_parameters: serde_json::to_string(&visit.traffic_source_parameters)
-                .expect("Gfsdg5r"),
-            redirection_time: serde_json::to_string(&visit.redirection_time).expect("h65dfg"),
+            // tracking_link_clicks: serde_json::to_string(&visit.tracking_link_clicks)
+            //     .expect("a^sdf"),
+            // pre_landing_page_clicks: serde_json::to_string(&visit.pre_landing_page_clicks)
+            //     .expect("gtsfd"),
+            // landing_page_clicks: serde_json::to_string(&visit.landing_page_clicks)
+            //     .expect("YHtdcfgh"),
+            // offer_clicks: serde_json::to_string(&visit.offer_clicks).expect("fdasdf4"),
+            // referrer: serde_json::to_string(&visit.referrer).expect("hgfsffd"),
+            // traffic_source_parameters: serde_json::to_string(&visit.traffic_source_parameters)
+            //     .expect("Gfsdg5r"),
+            // redirection_time: serde_json::to_string(&visit.redirection_time).expect("h65dfg"),
+            clicks: serde_json::to_string(&visit.clicks).expect("G%fdsf"),
+            referrer: serde_json::to_string(&visit.referrer).expect("GR%TSDGF"),
+            parameters: serde_json::to_string(&visit.parameters).expect("4gf53FDS"),
             click_map: serde_json::to_string(&visit.click_map).expect("G%"),
             user_agent_data: serde_json::to_string(&visit.user_agent_data).expect("h765gh"),
             geo_ip_data: serde_json::to_string(&visit.geo_ip_data).expect("GH^%dsf"),
             conversions: serde_json::to_string(&visit.conversions).expect("t5sdfd"),
             custom_conversions: serde_json::to_string(&visit.custom_conversions).expect("G%^gsdf"),
-            click_is_suspicious: visit.click_is_suspicious,
+            // click_is_suspicious: visit.click_is_suspicious,
             last_updated: visit.last_updated.timestamp(),
         }
     }
@@ -149,6 +173,7 @@ impl From<VisitModel> for Visit {
             .expect("Gf45sf"),
             clicks: serde_json::from_str(&visit_model.clicks).expect("G%sdf"),
             referrer: serde_json::from_str(&visit_model.referrer).expect("G%sdf"),
+            parameters: serde_json::from_str(&visit_model.parameters).expect("TG%GSFD"),
             click_map: serde_json::from_str(&visit_model.click_map).expect("GTfx"),
             user_agent_data: serde_json::from_str(&visit_model.user_agent_data).expect("h76gfe"),
             geo_ip_data: serde_json::from_str(&visit_model.geo_ip_data).expect("uyhgfd"),

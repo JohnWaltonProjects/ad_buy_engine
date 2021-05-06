@@ -6,7 +6,7 @@ edition = "2018"
 
 [features]
 backend = ["diesel"]
-use-ua-parser = ["user-agent-parser"]
+ua-parser = ["user-agent-parser"]
 
 [dependencies]
 anyhow = "1.0.32"

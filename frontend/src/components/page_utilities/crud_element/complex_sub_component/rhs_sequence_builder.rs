@@ -97,7 +97,7 @@ impl Component for RHSSequenceBuilder {
             props,
             weight: "".to_string(),
             name,
-            sequence_type: SequenceType::OffersOnly,
+            sequence_type: SequenceType::Offers,
             referrer_handling: ReferrerHandling::RemoveAll,
         }
     }
@@ -232,7 +232,7 @@ impl Component for RHSSequenceBuilder {
         let sequence_type = if let Some(sequence) = self.return_active_sequence() {
             sequence.sequence_type.clone()
         } else {
-            SequenceType::OffersOnly
+            SequenceType::Offers
         };
 
         html! {
@@ -261,15 +261,15 @@ impl RHSSequenceBuilder {
         let sequence_type = if let Some(sequence) = self.return_active_sequence() {
             sequence.sequence_type.clone()
         } else {
-            SequenceType::OffersOnly
+            SequenceType::Offers
         };
 
         let mut oc = "uk-button uk-button-small".to_string();
         let mut loc = "uk-button uk-button-small".to_string();
         let mut lc = "uk-button uk-button-small".to_string();
         match sequence_type {
-            SequenceType::OffersOnly => oc.push_str(" uk-button-success"),
-            SequenceType::LandingPageAndOffers => loc.push_str(" uk-button-success"),
+            SequenceType::Offers => oc.push_str(" uk-button-success"),
+            SequenceType::LandingPages => loc.push_str(" uk-button-success"),
             SequenceType::Matrix => lc.push_str(" uk-button-success"),
         }
 
@@ -278,8 +278,8 @@ impl RHSSequenceBuilder {
                     <div class="uk-margin-small">
                         {label!("Sequence Type")}
                         <div uk-switcher="">
-                            <button class=oc onclick=callback!(self, |_| Msg::UpdateSequenceType(SequenceType::OffersOnly))>{"Offers Only"}</button>
-                            <button class=loc onclick=callback!(self, |_| Msg::UpdateSequenceType(SequenceType::LandingPageAndOffers))>{"Landing Pages & Offers"}</button>
+                            <button class=oc onclick=callback!(self, |_| Msg::UpdateSequenceType(SequenceType::Offers))>{"Offers Only"}</button>
+                            <button class=loc onclick=callback!(self, |_| Msg::UpdateSequenceType(SequenceType::LandingPages))>{"Landing Pages & Offers"}</button>
                             <button class=lc onclick=callback!(self, |_| Msg::UpdateSequenceType(SequenceType::Matrix))>{"Matrix"}</button>
                         </div>
                     </div>

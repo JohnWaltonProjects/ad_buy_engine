@@ -129,8 +129,8 @@ impl CampaignSequenceBuilder {
         let mut lc = "uk-button uk-button-small".to_string();
 
         match self.sequence.sequence_type {
-            SequenceType::OffersOnly => oc.push_str(" uk-button-success"),
-            SequenceType::LandingPageAndOffers => loc.push_str(" uk-button-success"),
+            SequenceType::Offers => oc.push_str(" uk-button-success"),
+            SequenceType::LandingPages => loc.push_str(" uk-button-success"),
             SequenceType::Matrix => lc.push_str(" uk-button-success"),
         }
 
@@ -139,8 +139,8 @@ impl CampaignSequenceBuilder {
                     <div class="uk-margin-small">
                         {label!("Sequence Type")}
                         <div uk-switcher="">
-                            <button class=oc onclick=callback!(self, |_| Msg::UpdateSequenceType(SequenceType::OffersOnly))>{"Offers Only"}</button>
-                            <button class=loc onclick=callback!(self, |_| Msg::UpdateSequenceType(SequenceType::LandingPageAndOffers))>{"Landing Pages & Offers"}</button>
+                            <button class=oc onclick=callback!(self, |_| Msg::UpdateSequenceType(SequenceType::Offers))>{"Offers Only"}</button>
+                            <button class=loc onclick=callback!(self, |_| Msg::UpdateSequenceType(SequenceType::LandingPages))>{"Landing Pages & Offers"}</button>
                             <button class=lc onclick=callback!(self, |_| Msg::UpdateSequenceType(SequenceType::Matrix))>{"Matrix"}</button>
                         </div>
                     </div>
@@ -153,22 +153,22 @@ impl CampaignSequenceBuilder {
             let matrix = arc!(restored_sequence.matrix);
 
             match self.sequence.sequence_type {
-                SequenceType::OffersOnly => VNode::from(html! {
+                SequenceType::Offers => VNode::from(html! {
                                 <MatrixBuilder
                                 root_matrix=arc!(matrix)
                                 local_matrix=arc!(matrix)
                                 state=rc!(self.props.state)
-                                seq_type=SequenceType::OffersOnly
+                                seq_type=SequenceType::Offers
                                 campaign_sequence_builder_link=Rc::new(self.link.clone())
                                 />
                 }),
 
-                SequenceType::LandingPageAndOffers => VNode::from(html! {
+                SequenceType::LandingPages => VNode::from(html! {
                                 <MatrixBuilder
                                 root_matrix=arc!(matrix)
                                 local_matrix=arc!(matrix)
                                 state=rc!(self.props.state)
-                                seq_type=SequenceType::LandingPageAndOffers
+                                seq_type=SequenceType::LandingPages
                                 campaign_sequence_builder_link=Rc::new(self.link.clone())
                                 />
                 }),

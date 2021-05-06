@@ -26,7 +26,7 @@ pub async fn get_identity(
         Ok(res) => match res {
             Ok(rv) => {
                 if let RespValue::SimpleString(data) = rv {
-                    Ok(serde_json::from_str(&data)?)
+                    Ok(serde_json::from_str(&data).expect("G%Rf"))
                 } else {
                     Err(ApiError::BadRequest(
                         "Resp val not simple string".to_string(),

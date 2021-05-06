@@ -36,7 +36,10 @@ pub async fn extra_multiple(
     params: Query<HashMap<String, String>>,
 ) -> Result<HttpResponse, ApiError> {
     let click_identity = from_request_extract_identity(&req, &redis, &pool).await?;
-    let mut visit: Visit = block(move || VisitModel::get(click_identity.visit_id, &pool.get()?))
+
+    let conn = pool.get()?;
+    let identity = click_identity.clone();
+    let mut visit: Visit = block(move || VisitModel::get(identity.visit_id, &conn))
         .await?
         .into();
 
@@ -56,25 +59,19 @@ pub async fn extra_multiple(
                     MatrixData::Offer(o) => {
                         url = o.url.to_string();
                         visit.push_click_event(ClickEvent::create(ClickableElement::Offer(
-                            TerseElement::new(selected_node.id.clone(), None, 0, 0, 0),
+                            TerseElement::new(selected_node.id.clone(), None),
                         )));
                     }
                     MatrixData::LandingPage(lp) => {
                         url = lp.url.to_string();
                         visit.push_click_event(ClickEvent::create(ClickableElement::LandingPage(
-                            TerseElement::new(
-                                selected_node.id.clone(),
-                                Some(lp.url.clone()),
-                                0,
-                                0,
-                                0,
-                            ),
+                            TerseElement::new(selected_node.id.clone(), Some(lp.url.clone())),
                         )));
                     }
                     _ => {}
                 }
-
-                block(move || VisitModel::update(visit.id, visit.into(), &pool.get()?)).await?;
+                let conn = pool.get()?;
+                block(move || VisitModel::update(visit.id, visit.into(), &conn)).await?;
 
                 Ok(HttpResponse::Found().header(LOCATION, url).finish())
             }
@@ -86,23 +83,26 @@ pub async fn extra_multiple(
                     .get(offer_group_idx.into_inner())
                     .expect("G%$tfsdg")
                     .clone();
-                if let MatrixData::Offer(o) = offer_click_map.value.data {
-                    let redirect_url = o.url.clone();
+                if let MatrixData::Offer(offer) = offer_click_map.value.data {
+                    let redirect_url = offer.url.clone();
+
                     visit.push_click_event(ClickEvent::create(ClickableElement::Offer(
-                        TerseElement::new(o.offer_id, Some(o.url), 0, 0, 0),
+                        TerseElement::new(offer.offer_id, Some(offer.url)),
                     )));
-                    block(move || VisitModel::update(visit.id, visit.into(), &pool.get()?)).await?;
+
+                    let conn = pool.get()?;
+                    block(move || VisitModel::update(visit.id, visit.into(), &conn)).await?;
                     Ok(HttpResponse::Found()
-                        .header(LOCATION, redirect_url)
+                        .header(LOCATION, redirect_url.as_str())
                         .finish())
                 } else {
-                    Err(ApiError::InternalServerError("not an offer".into_string()))
+                    Err(ApiError::InternalServerError("not an offer".to_string()))
                 }
             }
         }
     } else {
         Err(ApiError::InternalServerError(
-            "no sequence found".into_string(),
+            "no sequence found".to_string(),
         ))
     }
 }

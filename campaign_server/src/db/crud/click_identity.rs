@@ -26,10 +26,10 @@ pub fn update_click_identity(
     pool: &PgPool,
     payload: ClickIdentityModal,
 ) -> Result<ClickIdentityModal, ApiError> {
-    use crate::schema::click_identity::dsl::{click_identity, visit_record_id};
+    use crate::schema::click_identity::dsl::{click_identity, ua_ip_id};
 
     Ok(
-        update(click_identity.filter(visit_record_id.eq(payload.id.clone())))
+        update(click_identity.filter(ua_ip_id.eq(payload.ua_ip_id.clone())))
             .set(payload)
             .get_result::<ClickIdentityModal>(&pool.get()?)?,
     )
@@ -38,18 +38,21 @@ pub fn update_click_identity(
 pub fn get_click_identity(pool: &PgPool, ua_ip_id: String) -> Result<ClickIdentityModal, ApiError> {
     use crate::schema::click_identity::dsl::{click_identity, ua_ip_id};
     Ok(click_identity
-        .find(id)
+        .find(ua_ip_id)
         .get_result::<ClickIdentityModal>(&pool.get()?)?)
 }
 
 pub fn load_click_identities_for_cache(pool: &PgPool) -> Result<Vec<ClickIdentity>, ApiError> {
-    use crate::schema::click_identity::dsl::{click_identity, visit_record_id};
+    use crate::schema::click_identity::dsl::{click_identity, visit_id};
     let mut cut_off = Utc::now().timestamp_nanos();
     cut_off - 200_000;
 
-    let res: Vec<ClickIdentityModal> = click_identity
-        .filter(visit_record_id > cut_off)
+    let response: Vec<ClickIdentityModal> = click_identity
+        .filter(visit_id > cut_off)
         .load::<ClickIdentityModal>(&pool.get()?)?;
 
-    Ok(res.iter().map(|s| s.into()).collect::<Vec<ClickIdentity>>())
+    Ok(response
+        .iter()
+        .map(|s| s.into())
+        .collect::<Vec<ClickIdentity>>())
 }

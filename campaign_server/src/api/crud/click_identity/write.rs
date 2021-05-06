@@ -21,7 +21,7 @@ pub async fn store_initial_click(
     let ci_modal = click_identity.clone().into();
     let res = create_click_identity(click_identity, redis).await?;
     let res = block(move || click_identity::create_click_identity(&pool, ci_modal)).await?;
-    Ok(())
+    Err(ApiError::InternalServerError(format!("testing ")))
 }
 
 pub async fn create_click_identity(

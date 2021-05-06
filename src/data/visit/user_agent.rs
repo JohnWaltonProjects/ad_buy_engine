@@ -1,4 +1,4 @@
-#[cfg(feature = "use-ua-parser")]
+#[cfg(feature = "ua-parser")]
 use user_agent_parser::UserAgentParser;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -24,7 +24,7 @@ pub struct UserAgentData {
 }
 
 impl UserAgentData {
-    #[cfg(feature = "use-ua-parser")]
+    #[cfg(feature = "ua-parser")]
     pub fn new(ua_string: String) -> Self {
         let parser = UserAgentParser::from_path("regexes.yaml").unwrap();
 

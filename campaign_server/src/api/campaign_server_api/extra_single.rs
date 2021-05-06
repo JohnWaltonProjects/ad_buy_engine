@@ -23,6 +23,7 @@ use ad_buy_engine::traversal::Bft;
 use ad_buy_engine::Url;
 use std::collections::HashMap;
 use std::net::IpAddr;
+use std::ops::Deref;
 use std::str::FromStr;
 use std::sync::Mutex;
 use uuid::Uuid;
@@ -36,7 +37,9 @@ pub async fn extra_single(
     params: Query<HashMap<String, String>>,
 ) -> Result<HttpResponse, ApiError> {
     let click_identity = from_request_extract_identity(&req, &redis, &pool).await?;
-    let mut visit: Visit = block(move || VisitModel::get(click_identity.visit_id, &pool.get()?))
+    let conn = pool.get()?;
+    let identity = click_identity.clone();
+    let mut visit: Visit = block(move || VisitModel::get(identity.visit_id, conn.deref()))
         .await?
         .into();
 
@@ -52,25 +55,27 @@ pub async fn extra_single(
                     MatrixData::Offer(o) => {
                         url = o.url.to_string();
                         visit.push_click_event(ClickEvent::create(ClickableElement::Offer(
-                            TerseElement::new(selected_node.id.clone(), None, 0, 0, 0),
+                            TerseElement::new(selected_node.id.clone(), None),
                         )));
                     }
                     MatrixData::LandingPage(lp) => {
                         url = lp.url.to_string();
                         visit.push_click_event(ClickEvent::create(ClickableElement::LandingPage(
-                            TerseElement::new(
-                                selected_node.id.clone(),
-                                Some(lp.url.clone()),
-                                0,
-                                0,
-                                0,
-                            ),
+                            TerseElement::new(selected_node.id.clone(), Some(lp.url.clone())),
                         )));
                     }
                     _ => {}
                 }
 
-                block(move || VisitModel::update(visit.id, visit.into(), &pool.get()?)).await?;
+                let local_pool = pool.clone();
+                block(move || {
+                    VisitModel::update(
+                        visit.id,
+                        visit.into(),
+                        local_pool.get().expect("T%$F").deref(),
+                    )
+                })
+                .await?;
 
                 Ok(HttpResponse::Found().header(LOCATION, url).finish())
             }
@@ -85,20 +90,28 @@ pub async fn extra_single(
                 if let MatrixData::Offer(o) = offer_click_map.value.data {
                     let redirect_url = o.url.clone();
                     visit.push_click_event(ClickEvent::create(ClickableElement::Offer(
-                        TerseElement::new(o.offer_id, Some(o.url), 0, 0, 0),
+                        TerseElement::new(o.offer_id, Some(o.url)),
                     )));
-                    block(move || VisitModel::update(visit.id, visit.into(), &pool.get()?)).await?;
+                    let local_pool = pool.clone();
+                    block(move || {
+                        VisitModel::update(
+                            visit.id,
+                            visit.into(),
+                            local_pool.get().expect("asdf").deref(),
+                        )
+                    })
+                    .await?;
                     Ok(HttpResponse::Found()
-                        .header(LOCATION, redirect_url)
+                        .header(LOCATION, redirect_url.as_str())
                         .finish())
                 } else {
-                    Err(ApiError::InternalServerError("not an offer".into_string()))
+                    Err(ApiError::InternalServerError("not an offer".to_string()))
                 }
             }
         }
     } else {
         Err(ApiError::InternalServerError(
-            "no sequence found".into_string(),
+            "no sequence found".to_string(),
         ))
     }
 }

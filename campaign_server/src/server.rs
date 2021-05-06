@@ -1,4 +1,4 @@
-use crate::api::campaign_server_api::click::{process_click, process_initial_click};
+use crate::api::campaign_server_api::click::process_initial_click;
 use crate::api::crud::click_identity::write::create_click_identity;
 use crate::campaign_agent::CampaignAgent;
 use crate::db::crud::click_identity::load_click_identities_for_cache;
@@ -54,10 +54,11 @@ pub async fn server() -> std::io::Result<()> {
     } else {
         panic!("Redis URL env var not found")
     };
-    let res = load_click_identities_for_cache(&pool)?;
+    let res = load_click_identities_for_cache(&pool).expect("g56tFDS");
+
     println!("click identities number: {}", &res.len());
-    res.into_iter()
-        .map(|s| create_click_identity(&s.user_agent, s.ip, s.click_map, cache.clone()));
+
+    res.into_iter().map(|s| create_click_identity(&s, &cache));
 
     let mut filtered_restored: Vec<Campaign> = {
         use crate::schema::campaigns::dsl::campaigns;

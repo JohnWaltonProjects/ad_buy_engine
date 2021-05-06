@@ -72,13 +72,6 @@ macro_rules! impl_accountable_database_communication {
 }
 
 #[macro_export]
-macro_rules! impl_accountable {
-	($($model:ty)*) => {
-		$(impl Accountable for $model {})*
-	};
-}
-
-#[macro_export]
 macro_rules! pr {
     ($str:expr) => {
         println!("{}", $str)

@@ -52,17 +52,24 @@ pub struct Visit {
 }
 
 impl Visit {
-    pub fn push_click_event(&mut self, ce: ClickEvent){
+    pub fn push_click_event(&mut self, ce: ClickEvent) {
         self.clicks.push(ce);
     }
-    
-    pub fn new(c: &Campaign, g: GeoIPData, u: UserAgentData, r:Option<Url>, p:HashMap<String,String>, cm:ClickMap, ce:ClickEvent) -> Self {
+
+    pub fn new(
+        c: &Campaign,
+        g: GeoIPData,
+        u: UserAgentData,
+        r: Option<Url>,
+        p: HashMap<String, String>,
+        cm: ClickMap,
+        ce: ClickEvent,
+    ) -> Self {
         let funnel_id = if let Either::Left(funnel) = &c.campaign_core {
             Some(funnel.funnel_id.clone())
         } else {
             None
         };
-        
 
         Self {
             id: Utc::now().timestamp_nanos(),
@@ -70,23 +77,23 @@ impl Visit {
             campaign_id: c.campaign_id.clone(),
             traffic_source_id: c.traffic_source.traffic_source_id.clone(),
             funnel_id,
-            impressions_from_traffic_source:0,
-            clicks:vec![ce],
-            referrer:r,
-            parameters:p,
+            impressions_from_traffic_source: 0,
+            clicks: vec![ce],
+            referrer: r,
+            parameters: p,
             click_map: cm,
-            user_agent_data:u
-            geo_ip_data:g,
-            conversions:vec![],
-            custom_conversions:vec![],
-            last_updated:Utc::now(),
+            user_agent_data: u,
+            geo_ip_data: g,
+            conversions: vec![],
+            custom_conversions: vec![],
+            last_updated: Utc::now(),
         }
     }
 }
 
 //
 // impl Visit {
-//     #[cfg(feature = "use-ua-parser")]
+//     #[cfg(feature = "ua-parser")]
 //     pub fn create(
 //         campaign: &LiveCampaign,
 //         ip: IpAddr,

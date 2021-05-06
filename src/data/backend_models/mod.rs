@@ -19,6 +19,7 @@ use super::backend_models::{
 };
 
 use crate::data::backend_models::linked_conversion::LinkedConversion;
+use crate::data::backend_models::visit::ClickIdentityModal;
 use crate::data::visit::visit_identity::ClickIdentity;
 #[cfg(feature = "backend")]
 use crate::schema::emails;
@@ -71,8 +72,7 @@ pub trait DatabaseCommunication<T> {
 #[cfg(feature = "backend")]
 impl_database_communication!(
     LinkedConversion, linked_conversion
-    ClickIdentity, click_identity
-    VisitModel, visits
+    ClickIdentityModal, click_identity
     AccountModel, accounts
     UserModel, users
     CampaignModel, campaigns
@@ -85,7 +85,6 @@ impl_database_communication!(
 
 #[cfg(feature = "backend")]
 impl_accountable_database_communication!(
-    VisitModel, visits
     UserModel, users
     CampaignModel, campaigns
     FunnelModel, funnels
@@ -93,14 +92,4 @@ impl_accountable_database_communication!(
     LandingPageModel, landing_pages
     OfferModel, offers
     OfferSourceModel, offer_sources
-);
-
-impl_accountable!(
-    UserModel
-    CampaignModel
-    FunnelModel
-    TrafficSourceModel
-    LandingPageModel
-    OfferModel
-    OfferSourceModel
 );

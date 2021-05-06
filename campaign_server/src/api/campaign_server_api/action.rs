@@ -6,6 +6,7 @@ use actix_redis::{Command, RedisActor, RespValue};
 use actix_web::http::header::{LOCATION, REFERER, USER_AGENT};
 use actix_web::web::{Data, Path, Query};
 use actix_web::{HttpRequest, HttpResponse};
+use ad_buy_engine::data::backend_models::visit::VisitModel;
 use ad_buy_engine::data::elements::campaign::Campaign;
 use ad_buy_engine::data::elements::matrix::MatrixData;
 use ad_buy_engine::data::visit::click_map::ClickMap;
@@ -19,19 +20,18 @@ use std::net::IpAddr;
 use std::str::FromStr;
 use std::sync::Mutex;
 use uuid::Uuid;
-use ad_buy_engine::data::backend_models::visit::VisitModel;
 
 pub async fn action(
     req: HttpRequest,
     pool: Data<PgPool>,
     params: Query<HashMap<String, String>>,
 ) -> Result<HttpResponse, ApiError> {
-	let sid = params.get("sid");
-	VisitModel::
-	
+    let sid = params.get("sid");
+    // VisitModel::
+
     // receive subid
 
-    Ok()
+    Err(ApiError::InternalServerError(format!("testing 123")))
     // if let Some(found) = find_campaign(campaign_id.into_inner(), app_state, &pool) {
     //     let ua = req.headers().get(USER_AGENT).unwrap().to_str().unwrap();
     //     let ip = req.peer_addr().unwrap().ip();

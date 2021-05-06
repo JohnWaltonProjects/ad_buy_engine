@@ -45,8 +45,8 @@ pub struct Funnel {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum SequenceType {
-    LandingPageAndOffers,
-    OffersOnly,
+    LandingPages,
+    Offers,
     OfferWall,
 }
 

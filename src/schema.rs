@@ -112,6 +112,7 @@ table! {
     linked_conversion (id) {
         id -> Varchar,
         campaign_id -> Varchar,
+        offer_id -> Varchar,
         created_at -> Int8,
     }
 }
@@ -198,36 +199,21 @@ table! {
 }
 
 table! {
-    visit_ledger_table (id) {
-        id -> Varchar,
-        visit_ids -> Varchar,
-    }
-}
-
-table! {
     visits (id) {
         id -> Int8,
         account_id -> Varchar,
         campaign_id -> Varchar,
         traffic_source_id -> Varchar,
         funnel_id -> Varchar,
-        pre_sell_landing_page_id -> Varchar,
-        landing_page_ids -> Varchar,
-        offer_ids -> Varchar,
         impressions_from_traffic_source -> Varchar,
-        tracking_link_clicks -> Varchar,
-        pre_landing_page_clicks -> Varchar,
-        landing_page_clicks -> Varchar,
-        offer_clicks -> Varchar,
+        clicks -> Varchar,
         referrer -> Varchar,
-        traffic_source_parameters -> Varchar,
-        redirection_time -> Varchar,
+        parameters -> Varchar,
         click_map -> Varchar,
         user_agent_data -> Varchar,
         geo_ip_data -> Varchar,
         conversions -> Varchar,
         custom_conversions -> Varchar,
-        click_is_suspicious -> Bool,
         last_updated -> Int8,
     }
 }
@@ -245,6 +231,5 @@ allow_tables_to_appear_in_same_query!(
     offers,
     traffic_sources,
     users,
-    visit_ledger_table,
     visits,
 );

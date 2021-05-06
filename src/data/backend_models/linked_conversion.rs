@@ -11,8 +11,8 @@ use uuid::Uuid;
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct LinkedConversion {
     pub id: String,
-    pub campaign_id: Uuid,
-    pub offer_id: Option<Uuid>,
+    pub campaign_id: String,
+    pub offer_id: String,
     pub created_at: i64,
 }
 // needs to link offer

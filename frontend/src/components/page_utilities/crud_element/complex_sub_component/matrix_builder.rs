@@ -155,7 +155,7 @@ impl Component for MatrixBuilder {
                         }
 
                         Transform::Lander(mut lp) => {
-                            if let SequenceType::LandingPageAndOffers = self.props.seq_type {
+                            if let SequenceType::LandingPages = self.props.seq_type {
                                 let offer_groups =
                                     self.props.root_matrix.read().unwrap().children_groups.len()
                                         - 1;
@@ -385,7 +385,7 @@ impl MatrixBuilder {
             &self.props.local_matrix.read().expect("G%FDrR").data(),
         ) {
             (seq_type, MatrixData::Void) => match seq_type {
-                SequenceType::OffersOnly => {
+                SequenceType::Offers => {
                     let transform_to_offer_cb = self.link.callback(move |offer: Offer| {
                         Msg::UpdateMatrix(UpdateMatrix::FillVoid(Transform::Offer(offer)))
                     });
@@ -405,7 +405,7 @@ impl MatrixBuilder {
                     })
                 }
 
-                SequenceType::LandingPageAndOffers => {
+                SequenceType::LandingPages => {
                     let group_idx = self.props.local_matrix.read().unwrap().value.group_idx;
 
                     let transform_to_offer_cb = self.link.callback(move |offer: Offer| {
@@ -535,7 +535,7 @@ impl MatrixBuilder {
                 }
             },
 
-            (SequenceType::OffersOnly, MatrixData::Source) => {
+            (SequenceType::Offers, MatrixData::Source) => {
                 let mut offer_children_nodes = VList::new();
                 let matrix_handle = self.props.local_matrix.read().expect("GTRdsfg");
                 let offer_children = matrix_handle.children_groups.get(0).unwrap();
@@ -566,7 +566,7 @@ impl MatrixBuilder {
                         root_matrix=arc!(self.props.root_matrix)
                         local_matrix=local_matrix
                         state=rc!(self.props.state)
-                        seq_type=SequenceType::OffersOnly
+                        seq_type=SequenceType::Offers
                         sequence_builder_link=sequence_builder_link
                         campaign_sequence_builder_link=campaign_sequence_builder_link
                         />
@@ -588,7 +588,7 @@ impl MatrixBuilder {
                     })
             }
 
-            (SequenceType::OffersOnly, MatrixData::Offer(offer)) => {
+            (SequenceType::Offers, MatrixData::Offer(offer)) => {
                 let blur_update_weight_callback = self
                     .link
                     .callback(move |_| Msg::UpdateMatrix(UpdateMatrix::Weight));
@@ -608,7 +608,7 @@ impl MatrixBuilder {
                 })
             }
 
-            (SequenceType::LandingPageAndOffers, MatrixData::Source) => {
+            (SequenceType::LandingPages, MatrixData::Source) => {
                 let mut nodes = VList::new();
 
                 for (group_idx, group) in self
@@ -647,7 +647,7 @@ impl MatrixBuilder {
                                 root_matrix=arc!(self.props.root_matrix)
                                 local_matrix=local_matrix
                                 state=rc!(self.props.state)
-                                seq_type=SequenceType::LandingPageAndOffers
+                                seq_type=SequenceType::LandingPages
                             sequence_builder_link=sequence_builder_link
                             campaign_sequence_builder_link=campaign_sequence_builder_link
                                 />
@@ -709,7 +709,7 @@ impl MatrixBuilder {
                 VNode::from(nodes)
             }
 
-            (SequenceType::LandingPageAndOffers, matrix_data) => {
+            (SequenceType::LandingPages, matrix_data) => {
                 let matrix_handle = self.props.local_matrix.read().expect("g546sdfg");
                 let rm_cb = self
                     .link
@@ -841,7 +841,7 @@ impl MatrixBuilder {
             self.props.seq_type,
             self.props.local_matrix.read().expect("5tgFt5RF").data(),
         ) {
-            (SequenceType::OffersOnly, MatrixData::Source) => VNode::from(html! {
+            (SequenceType::Offers, MatrixData::Source) => VNode::from(html! {
                 <thead>
                     <tr>
                         <th class="uk-table-shrink uk-text-nowrap">{"Name"}</th>
@@ -851,7 +851,7 @@ impl MatrixBuilder {
                 </thead>
             }),
 
-            (SequenceType::LandingPageAndOffers, MatrixData::Source) => VNode::from(html! {
+            (SequenceType::LandingPages, MatrixData::Source) => VNode::from(html! {
                 <thead>
                     <tr>
                         <th class="uk-table-shrink uk-text-nowrap">{"Name"}</th>

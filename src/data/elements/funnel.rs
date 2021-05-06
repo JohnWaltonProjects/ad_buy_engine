@@ -55,9 +55,9 @@ pub struct Funnel {
 #[derive(Serialize, Deserialize, Copy, Clone, Debug, EnumString, ToString, EnumIter, PartialEq)]
 pub enum SequenceType {
     #[strum(serialize = "Offers Only")]
-    OffersOnly,
+    Offers,
     #[strum(serialize = "Landing Pages & Offers")]
-    LandingPageAndOffers,
+    LandingPages,
     #[strum(serialize = "Matrix")]
     Matrix,
 }
@@ -161,7 +161,7 @@ impl Default for Sequence {
             id: Uuid::new_v4(),
             name: "".to_string(),
             weight: 0,
-            sequence_type: SequenceType::OffersOnly,
+            sequence_type: SequenceType::Offers,
             redirect_option: RedirectOption::Redirect,
             referrer_handling: ReferrerHandling::DoNothing,
             matrix: Matrix::source(),

@@ -53,9 +53,9 @@
 //             Ok(())
 //         }
 //
-//         SequenceType::LandingPageAndOffers => return Err(new_string!("not setup")),
+//         SequenceType::LandingPages => return Err(new_string!("not setup")),
 //
-//         SequenceType::OffersOnly => {
+//         SequenceType::Offers => {
 //             let target_item_id = local_matrix.read().expect("g5rtsfdgF").value.id.clone();
 //             let target_item_idx = local_matrix.read().expect("g5rtsfdgF").value.item_idx;
 //             let target_group_idx = local_matrix.read().expect("g5rtsfdgF").group_idx();

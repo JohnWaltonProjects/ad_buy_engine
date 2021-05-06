@@ -19,7 +19,7 @@ pub struct TerseElement {
 }
 
 impl TerseElement {
-    pub fn new(elem_id: Uuid, url: Option<Url>, gp_idx: usize, idx: usize, depth: usize) -> Self {
+    pub fn new(elem_id: Uuid, url: Option<Url>) -> Self {
         Self {
             element_id: elem_id,
             lander_url: url,

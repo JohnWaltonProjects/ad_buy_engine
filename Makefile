@@ -53,10 +53,10 @@ check-frontend:
 	cargo check -p frontend
 
 check-server:
-	cargo check -p campaign_server --features=backend,use-ua-parser
+	cargo check -p campaign_server --features=backend,ua-parser
 
 build-campaign-server:
-	cargo build -p campaign_server --features=backend,use-ua-parser --release && cp target/release/campaign_server bin/
+	cargo build -p campaign_server --features=backend,ua-parser --release && cp target/release/campaign_server bin/
 
 upload-static:
 		scp -r ./static/ ad_buy_engine@72.14.190.165:~/
