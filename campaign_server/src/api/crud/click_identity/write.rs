@@ -15,7 +15,7 @@ use std::net::IpAddr;
 pub async fn store_initial_click(
     redis: &Addr<RedisActor>,
     pool: Data<PgPool>,
-    click_identity: &ClickIdentity,
+    click_identity: ClickIdentity,
     visit: Visit,
 ) -> Result<Url, ApiError> {
     let ci_modal = click_identity.clone().into();
@@ -25,7 +25,7 @@ pub async fn store_initial_click(
 }
 
 pub async fn create_click_identity(
-    payload: &ClickIdentity,
+    payload: ClickIdentity,
     redis: &Addr<RedisActor>,
 ) -> Result<(), ApiError> {
     let req = redis.send(Command(resp_array![

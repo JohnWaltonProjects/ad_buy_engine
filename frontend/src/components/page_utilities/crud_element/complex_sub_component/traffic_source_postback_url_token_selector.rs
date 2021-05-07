@@ -63,21 +63,21 @@ impl Component for TrafficSourcePostbackURLTokenSelector {
         let selected_style = "border:2px solid blue;".to_string();
         let mut tokens_as_button_nodes = VList::new();
 
-        for token in DataURLToken::iter() //todo setup filter
-            // .filter(|s| s != &DataURLToken::Parameter1)
-            // && s != &DataURLToken::Parameter2
-            // && s != &DataURLToken::Parameter3
-            // && s != &DataURLToken::Parameter4
-            // && s != &DataURLToken::Parameter5
-            // && s != &DataURLToken::TransactionID
-            // && s != &DataURLToken::TimeOfPostback
-            // && s != &DataURLToken::ConversionCost
-            // && s != &DataURLToken::CustomEvent
-            // && s != &DataURLToken::PayoutCurrency
-            // && s != &DataURLToken::Payout
-            // && s != &DataURLToken::ClickID
-            // && s != &DataURLToken::FunnelID
-            // && s != &DataURLToken::Cost
+        for token in DataURLToken::iter()
+        // .filter(|s| s != &DataURLToken::Parameter1)
+        // && s != &DataURLToken::Parameter2
+        // && s != &DataURLToken::Parameter3
+        // && s != &DataURLToken::Parameter4
+        // && s != &DataURLToken::Parameter5
+        // && s != &DataURLToken::TransactionID
+        // && s != &DataURLToken::TimeOfPostback
+        // && s != &DataURLToken::ConversionCost
+        // && s != &DataURLToken::CustomEvent
+        // && s != &DataURLToken::PayoutCurrency
+        // && s != &DataURLToken::Payout
+        // && s != &DataURLToken::ClickID
+        // && s != &DataURLToken::FunnelID
+        // && s != &DataURLToken::Cost
         {
             if let Some(pos) = self.selected.iter().position(|s| s == &token) {
                 tokens_as_button_nodes.push(html!{<button style=selected_style class="uk-button uk-button-small uk-margin-small" onclick=self.link.callback(move |_| Msg::OnSelect(token.clone()))  >{token.to_string()}</button>})

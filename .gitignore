@@ -18,3 +18,6 @@ GeoLite2-ASN.mmdb
 .vscode
 offline_server
 bin/campaign_server
+abe.js
+abe.wasm
+snippets

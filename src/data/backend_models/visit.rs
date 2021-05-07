@@ -112,10 +112,6 @@ impl VisitModel {
     pub fn all(conn: &PgConnection) -> QueryResult<Vec<Self>> {
         crate::schema::visits::dsl::visits.load::<Self>(conn)
     }
-
-    // update postback url conversion
-    // update link click, offer click, lp click
-    // get latest 1000
 }
 
 impl From<Visit> for VisitModel {
@@ -126,25 +122,10 @@ impl From<Visit> for VisitModel {
             campaign_id: visit.campaign_id.to_string(),
             traffic_source_id: visit.traffic_source_id.to_string(),
             funnel_id: serde_json::to_string(&visit.funnel_id).expect("G%sdfg"),
-            // pre_sell_landing_page_id: serde_json::to_string(&visit.pre_sell_landing_page_id)
-            //     .expect("HGTsdfg"),
-            // landing_page_ids: serde_json::to_string(&visit.landing_page_ids).expect("GH%Tsfd"),
-            // offer_ids: serde_json::to_string(&visit.offer_ids).expect("GHTsdf"),
             impressions_from_traffic_source: serde_json::to_string(
                 &visit.impressions_from_traffic_source,
             )
             .expect("Gfsdffg"),
-            // tracking_link_clicks: serde_json::to_string(&visit.tracking_link_clicks)
-            //     .expect("a^sdf"),
-            // pre_landing_page_clicks: serde_json::to_string(&visit.pre_landing_page_clicks)
-            //     .expect("gtsfd"),
-            // landing_page_clicks: serde_json::to_string(&visit.landing_page_clicks)
-            //     .expect("YHtdcfgh"),
-            // offer_clicks: serde_json::to_string(&visit.offer_clicks).expect("fdasdf4"),
-            // referrer: serde_json::to_string(&visit.referrer).expect("hgfsffd"),
-            // traffic_source_parameters: serde_json::to_string(&visit.traffic_source_parameters)
-            //     .expect("Gfsdg5r"),
-            // redirection_time: serde_json::to_string(&visit.redirection_time).expect("h65dfg"),
             clicks: serde_json::to_string(&visit.clicks).expect("G%fdsf"),
             referrer: serde_json::to_string(&visit.referrer).expect("GR%TSDGF"),
             parameters: serde_json::to_string(&visit.parameters).expect("4gf53FDS"),
@@ -153,7 +134,6 @@ impl From<Visit> for VisitModel {
             geo_ip_data: serde_json::to_string(&visit.geo_ip_data).expect("GH^%dsf"),
             conversions: serde_json::to_string(&visit.conversions).expect("t5sdfd"),
             custom_conversions: serde_json::to_string(&visit.custom_conversions).expect("G%^gsdf"),
-            // click_is_suspicious: visit.click_is_suspicious,
             last_updated: visit.last_updated.timestamp(),
         }
     }

@@ -38,14 +38,11 @@ pub fn new(pool: &PgPool, new: &Invitation) -> Result<Invitation, ApiError> {
 
     let conn = pool.get()?;
 
-    // todo check if account already exists and handle
     diesel::delete(invitation)
         .filter(email.eq(&new.email))
         .execute(&conn)?;
 
-    diesel::insert_into(invitation)
-        .values(new)
-        .execute(&conn)?;
+    diesel::insert_into(invitation).values(new).execute(&conn)?;
 
     send_invitation(new)?;
     Ok(new.clone())

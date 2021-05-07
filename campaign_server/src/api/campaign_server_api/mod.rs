@@ -42,10 +42,9 @@ pub async fn from_request_extract_identity(
     match res {
         Ok(d) => Ok(d),
         Err(e) => {
-            // let pool = &pool.get()?;
             let res = block(move || click_identity::get_click_identity(&pool, ua_ip_id)).await?;
             let click_identity: ClickIdentity = res.into();
-            write::create_click_identity(&click_identity, redis).await?;
+            write::create_click_identity(click_identity.clone(), redis).await?;
             Ok(click_identity)
         }
     }

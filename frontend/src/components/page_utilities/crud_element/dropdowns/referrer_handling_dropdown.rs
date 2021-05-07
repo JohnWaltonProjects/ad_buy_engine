@@ -114,7 +114,7 @@ impl Component for ReferrerHandlingDropdown {
         }
 
         let mut component = VList::new();
-        let def_rep_list = ReplaceReferrerList::default(); //todo needs to handle replacing default list
+        let def_rep_list = ReplaceReferrerList::default();
         component.push(html! {
             <div class="uk-flex uk-flex-left uk-margin-small">
                     <div class="uk-margin-small">

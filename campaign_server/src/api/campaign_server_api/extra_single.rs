@@ -1,4 +1,6 @@
+use crate::api::campaign_server_api::{find_depth, from_request_extract_identity};
 use crate::api::campaign_state::find_campaign;
+use crate::api::crud::click_identity::write::store_initial_click;
 use crate::utils::database::PgPool;
 use crate::utils::errors::ApiError;
 use actix::Addr;
@@ -6,16 +8,13 @@ use actix_redis::{Command, RedisActor, RespValue};
 use actix_web::http::header::{LOCATION, REFERER, USER_AGENT};
 use actix_web::web::{block, Data, Path, Query};
 use actix_web::{HttpRequest, HttpResponse};
-use ad_buy_engine::data::elements::campaign::Campaign;
-use ad_buy_engine::data::visit::geo_ip::GeoIPData;
-// #[]
-use crate::api::campaign_server_api::{find_depth, from_request_extract_identity};
-use crate::api::crud::click_identity::write::store_initial_click;
 use ad_buy_engine::data::backend_models::visit::VisitModel;
+use ad_buy_engine::data::elements::campaign::Campaign;
 use ad_buy_engine::data::elements::funnel::SequenceType;
 use ad_buy_engine::data::elements::matrix::MatrixData;
 use ad_buy_engine::data::visit::click_event::{ClickEvent, ClickableElement, TerseElement};
 use ad_buy_engine::data::visit::click_map::ClickMap;
+use ad_buy_engine::data::visit::geo_ip::GeoIPData;
 use ad_buy_engine::data::visit::user_agent::UserAgentData;
 use ad_buy_engine::data::visit::visit_identity::ClickIdentity;
 use ad_buy_engine::data::visit::Visit;

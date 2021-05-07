@@ -2,6 +2,7 @@ use super::data_table::DataTable;
 use super::page_utilities::crud_element::crud_offer_sources::CRUDOfferSource;
 use crate::agents::tick_tock::TickTock;
 use crate::appstate::app_state::AppState;
+use crate::components::account_component::AccountComponent;
 use crate::components::account_tab_section::custom_conversions::modal::ModalType;
 use crate::components::app_bar::AppBar;
 use crate::components::page_controller::PageController;
@@ -17,7 +18,6 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use yew::virtual_dom::VNode;
 use yew::{html, prelude::*, Component, ComponentLink, Html, ShouldRender};
-use crate::components::account_component::AccountComponent;
 
 pub struct MainComponent {
     pub props: Props,
@@ -59,19 +59,19 @@ impl Component for MainComponent {
     fn view(&self) -> Html {
         let active_route = state_clone!(self.props.state).borrow().return_app_route();
         let account_section_active = dropdown_is_active!(AppRoute::Account AppRoute::CustomConversions AppRoute::ReferrerHandling, active_route);
-        
+
         if account_section_active {
-            VNode::from(html!{
+            VNode::from(html! {
                 <AccountComponent state=state_clone!(self.props.state) />
             })
         } else {
-            html!{
+            html! {
                         <div class="uk-child-width-1-1 uk-grid-collapse uk-background-default" uk-grid="">
                             <div><AppBar state=Rc::clone(&self.props.state) /></div>
                             <div><PageController state=Rc::clone(&self.props.state)  /></div>
                             {self.render_dashboard()}
 
-                            {self.render_crud_modal()} //todo render all modals all the time...
+                            {self.render_crud_modal()}
                         </div>
             }
         }
@@ -81,11 +81,11 @@ impl Component for MainComponent {
 impl MainComponent {
     fn render_dashboard(&self) -> VNode {
         if let AppRoute::Dashboard = self.props.state.borrow().return_app_route() {
-            VNode::from(html!{
+            VNode::from(html! {
                 <h1>{"Dashboard"}</h1>
             })
         } else {
-            VNode::from(html!{
+            VNode::from(html! {
                         <>
                             <div><PageUtilities state=Rc::clone(&self.props.state)  /></div>
                             <div><DataTable state=Rc::clone(&self.props.state) /></div>
@@ -93,7 +93,7 @@ impl MainComponent {
             })
         }
     }
-    
+
     fn render_crud_modal(&self) -> VNode {
         let state = self.props.state.borrow();
         match state.return_app_route() {

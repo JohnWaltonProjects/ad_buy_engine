@@ -58,7 +58,7 @@ pub async fn server() -> std::io::Result<()> {
 
     println!("click identities number: {}", &res.len());
 
-    res.into_iter().map(|s| create_click_identity(&s, &cache));
+    res.into_iter().map(|s| create_click_identity(s, &cache));
 
     let mut filtered_restored: Vec<Campaign> = {
         use crate::schema::campaigns::dsl::campaigns;
@@ -102,10 +102,10 @@ pub async fn server() -> std::io::Result<()> {
                 println!("\n");
                 srv.call(req).map(|res| res)
             })
-            .service(resource("/extra/{}"))
+            .service(resource("/extra/{num}"))
             .service(resource("/extra"))
-            .service(resource("/{campaign_id}").route(get().to(process_initial_click)))
-            .service(resource("/action").route(post().to(unimplemented!())))
+            .service(resource("/learn/{campaign_id}").route(get().to(process_initial_click)))
+            // .service(resource("/action").route(post().to(unimplemented!())))
             .configure(public_routes)
             .configure(private_routes)
             .service(

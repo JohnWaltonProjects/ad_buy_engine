@@ -1,5 +1,15 @@
-build-and-upload-campaign-server:
+local-dev-build-n-serve-campaign-server:
+	docker-compose down && make build-campaign-server && docker-compose up
+
+local-dev-build-n-copy-frontend:
+	docker-compose down && make build-secure-frontend && docker-compose up -d && firefox -new-tab "127.0.0.1:8081/secure/"
+
+online-dev-build-n-serve-campaign-server:
 	make build-campaign-server && make upload-campaign-server
+
+online-dev-build-n-copy-frontend:
+	docker-compose down && make build-secure-frontend && docker-compose up -d && firefox -new-tab "https://adbuyengine.com/secure/"
+
 
 docker-volume-reset:
 	ssh ad_buy_engine@72.14.190.165 'docker-compose down && docker volume rm campaign_server_storage && docker volume create --name=campaign_server_storage'
@@ -42,15 +52,6 @@ rename-js-file:
 
 rename-wasm-file:
 	mv ./*.wasm ./abe.wasm
-
-start-server:
-	sshpass -f "~/.abe.pw" ssh ad_buy_engine@72.14.190.165 ' ./campaign_server'
-
-#stop-server:
-	#curl -X GET "https://www.adbuyengine.com/stop" || true
-
-check-frontend:
-	cargo check -p frontend
 
 check-server:
 	cargo check -p campaign_server --features=backend,ua-parser

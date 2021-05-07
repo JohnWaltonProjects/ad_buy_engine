@@ -48,11 +48,11 @@ pub fn load_click_identities_for_cache(pool: &PgPool) -> Result<Vec<ClickIdentit
     cut_off - 200_000;
 
     let response: Vec<ClickIdentityModal> = click_identity
-        .filter(visit_id > cut_off)
+        .filter(visit_id.ge(cut_off))
         .load::<ClickIdentityModal>(&pool.get()?)?;
 
     Ok(response
         .iter()
-        .map(|s| s.into())
+        .map(|s| s.clone().into())
         .collect::<Vec<ClickIdentity>>())
 }

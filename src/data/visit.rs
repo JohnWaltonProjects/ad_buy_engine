@@ -120,7 +120,6 @@ impl Visit {
 //
 //         if let Err(_) = &city_reader.lookup::<City>(ip) {
 //             // Err(AError::msg("No IP Found"))
-//             // todo deployment, remove this ip for testing
 //             println!("Debug IP is: {}", &ip.to_string());
 //             let ip = IpAddr::from_str("24.245.77.178")?;
 //

@@ -80,8 +80,6 @@ impl From<Vec<String>> for ErrorResponse {
 /// Convert DBErrors to ApiErrors
 impl From<DBError> for ApiError {
     fn from(error: DBError) -> ApiError {
-        // Right now we just care about UniqueViolation from diesel
-        // But this would be helpful to easily map errors as our apps grows
         match error {
             DBError::DatabaseError(kind, info) => {
                 if let DatabaseErrorKind::UniqueViolation = kind {
@@ -117,6 +115,13 @@ impl From<DBError> for ApiError {
     }
 }
 
+/// Convert String Errors to ApiErrors
+impl From<String> for ApiError {
+    fn from(error: String) -> ApiError {
+        ApiError::InternalServerError(error)
+    }
+}
+
 /// Convert PoolErrors to ApiErrors
 impl From<PoolError> for ApiError {
     fn from(error: PoolError) -> ApiError {
@@ -148,15 +153,15 @@ impl From<SendRequestError> for ApiError {
 }
 
 impl From<std::io::Error> for ApiError {
-    fn from(err:std::io::Error)->ApiError{
+    fn from(err: std::io::Error) -> ApiError {
         match err.kind() {
-            _=>ApiError::InternalServerError(err.to_string())
+            _ => ApiError::InternalServerError(err.to_string()),
         }
     }
 }
 
 impl From<BlockingError<diesel::result::Error>> for ApiError {
-    fn from(err:BlockingError<diesel::result::Error>)->ApiError{
+    fn from(err: BlockingError<diesel::result::Error>) -> ApiError {
         ApiError::BlockingError("diesel blocking err detected".to_string())
     }
 }
