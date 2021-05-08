@@ -16,21 +16,25 @@ use uuid::Uuid;
 pub struct LinkedConversion {
     /// Subid that is posted from Offer Source
     pub id: String,
+    pub visit_id: i64,
     pub campaign_id: String,
     pub offer_id: String,
     pub created_at: i64,
 }
 
+// todo if multiple clicks do not want to make multiple linked_conversion records in database, need to
 #[cfg(feature = "backend")]
 impl LinkedConversion {
-    pub fn create(campaign_id: &Uuid, offer_id: &Uuid) -> Self {
+    pub fn create(visit_id: i64, campaign_id: &Uuid, offer_id: &Uuid) -> Self {
         Self {
             id: generate_random_string(24),
+            visit_id: visit_id,
             campaign_id: campaign_id.to_string(),
             offer_id: offer_id.to_string(),
             created_at: Utc::now().timestamp(),
         }
     }
+
     pub fn new(new: Self, conn: &PgConnection) -> QueryResult<usize> {
         diesel::insert_into(crate::schema::linked_conversion::dsl::linked_conversion)
             .values(&new)

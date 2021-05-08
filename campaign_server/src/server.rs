@@ -1,4 +1,5 @@
 use crate::api::campaign_server_api::click::process_initial_click;
+use crate::api::campaign_server_api::extra_single::extra_single;
 use crate::api::crud::click_identity::write::create_click_identity;
 use crate::campaign_agent::CampaignAgent;
 use crate::db::crud::click_identity::load_click_identities_for_cache;
@@ -103,7 +104,7 @@ pub async fn server() -> std::io::Result<()> {
                 srv.call(req).map(|res| res)
             })
             .service(resource("/extra/{num}"))
-            .service(resource("/extra"))
+            .service(resource("/extra").route(get().to(extra_single)))
             .service(resource("/learn/{campaign_id}").route(get().to(process_initial_click)))
             // .service(resource("/action").route(post().to(unimplemented!())))
             .configure(public_routes)

@@ -69,11 +69,11 @@ pub fn select_child(group: &Vec<LiveMatrix>) -> LiveMatrix {
 }
 
 impl ClickMap {
-    pub fn find_node_in_matrix(&self, mid: &String) -> &Self {
+    pub fn find_node_in_matrix(&self, mid: Uuid) -> Self {
         let iter = Bft::new(self, |node| node.children.iter());
         let mut iter = iter.map(|(depth, node)| (depth, node));
-        let res = iter.find(|(d, n)| n.value.id.to_string() == *mid);
-        res.unwrap().1
+        let res = iter.find(|(d, n)| n.value.id == mid);
+        res.unwrap().1.clone()
     }
 
     pub fn get_initial_click(&self) -> Result<(Url, ClickEvent), String> {

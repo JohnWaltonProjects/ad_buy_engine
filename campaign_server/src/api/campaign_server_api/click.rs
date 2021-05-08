@@ -61,18 +61,6 @@ pub async fn process_initial_click(
             referrer.clone(),
         );
 
-        if let MatrixData::Offer(offer) = &click_map.value.data {
-            let linked_conversion = LinkedConversion::create(&found.campaign_id, &offer.offer_id);
-            let local_pool = pool.clone();
-            let result = block(move || {
-                let pooled_connection = local_pool.get_ref().get().expect("%Y^RFSTg");
-                let conn = pooled_connection.deref();
-                let result = LinkedConversion::new(linked_conversion, conn);
-                result
-            })
-            .await?;
-        }
-
         let (init_url, click_event) = click_map.get_initial_click()?;
         let visit = Visit::new(
             &found,
@@ -83,6 +71,20 @@ pub async fn process_initial_click(
             click_map.clone(),
             click_event,
         );
+
+        if let MatrixData::Offer(offer) = &click_map.value.data {
+            let linked_conversion =
+                LinkedConversion::create(visit.id, &found.campaign_id, &offer.offer_id);
+            let local_pool = pool.clone();
+            let result = block(move || {
+                let pooled_connection = local_pool.get_ref().get().expect("%Y^RFSTg");
+                let conn = pooled_connection.deref();
+                let result = LinkedConversion::new(linked_conversion, conn);
+                result
+            })
+            .await?;
+        }
+
         let click_identity = ClickIdentity::new(visit.id, ua.to_string(), ip, click_map);
         store_initial_click(redis.into_inner().as_ref(), pool, click_identity, visit).await?;
 

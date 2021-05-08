@@ -3,13 +3,15 @@ use rust_decimal::Decimal;
 use std::collections::HashMap;
 use std::net::IpAddr;
 use std::str::FromStr;
+use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Conversion {
     pub postback_url_parameters: HashMap<String, String>,
-    pub ip: IpAddr,
-    pub user_agent: String,
-    pub referrer: String,
+    // pub ip: IpAddr,
+    // pub user_agent: String,
+    // pub referrer: String,
+    pub offer_id:Uuid,
     pub postback_timestamp: NaiveDateTime,
 }
 

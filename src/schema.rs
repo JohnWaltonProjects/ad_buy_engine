@@ -111,6 +111,7 @@ table! {
 table! {
     linked_conversion (id) {
         id -> Varchar,
+        visit_id -> Int8,
         campaign_id -> Varchar,
         offer_id -> Varchar,
         created_at -> Int8,
@@ -199,6 +200,12 @@ table! {
 }
 
 table! {
+    visit_ledger (id) {
+        id -> Int8,
+    }
+}
+
+table! {
     visits (id) {
         id -> Int8,
         account_id -> Varchar,
@@ -231,5 +238,6 @@ allow_tables_to_appear_in_same_query!(
     offers,
     traffic_sources,
     users,
+    visit_ledger,
     visits,
 );
