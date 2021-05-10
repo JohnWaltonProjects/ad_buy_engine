@@ -56,6 +56,40 @@ pub struct VisitModel {
 
 #[cfg(feature = "backend")]
 impl VisitModel {
+    // pub fn all_except_ledger(
+    //     account_id: String,
+    //     ids_to_filter_out: Vec<i64>,
+    //     conn: &PgConnection,
+    // ) -> Vec<Self> {
+    //     let visits: Vec<VisitModel> = crate::schema::visits::dsl::visits
+    //         .filter(crate::schema::visits::dsl::account_id.eq(account_id))
+    //         .load::<Self>(conn)
+    //         .expect("GTRE");
+    // 
+    //     visits
+    //         .into_iter()
+    //         .filter(|s| {
+    //             for id in ids_to_filter_out.iter() {
+    //                 if *id == s.id {
+    //                     return false;
+    //                 }
+    //             }
+    //             true
+    //         })
+    //         .collect::<Vec<_>>()
+    // }
+    // 
+    // pub fn all_after_timestamp(
+    //     account_id: String,
+    //     timestamp: i64,
+    //     conn: &PgConnection,
+    // ) -> QueryResult<Vec<Self>> {
+    //     crate::schema::visits::dsl::visits
+    //         .filter(crate::schema::visits::dsl::account_id.eq(account_id))
+    //         .filter(crate::schema::visits::dsl::id.gt(timestamp))
+    //         .load::<Self>(conn)
+    // }
+
     pub fn all_by_last_updated(acc_id: String, conn: &PgConnection) -> QueryResult<Vec<Self>> {
         crate::schema::visits::dsl::visits
             .filter(crate::schema::visits::dsl::account_id.eq(acc_id))

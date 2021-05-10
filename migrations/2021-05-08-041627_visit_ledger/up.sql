@@ -1,0 +1,3 @@
+CREATE TABLE visit_ledger (
+    id BIGINT NOT NULL PRIMARY KEY
+);

@@ -1,5 +1,3 @@
-Visits could be send to client from server as they come in,
-Visits that are updated could be identified to update the local database.
 
 Sync Visits, 1 get visits later than date provided, in that list, then remove those by ID in visit ledger table, then add rest of visits in ledger table, then delete them from that Q.
 

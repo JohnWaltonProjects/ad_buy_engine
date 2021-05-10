@@ -52,5 +52,5 @@ rayon = "1.4.0"
 members=[
     "campaign_server",
     "frontend",
-    "tertiary_frontend"
+    "tertiary_frontend",
 ]

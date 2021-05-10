@@ -4,7 +4,7 @@ use serde_json::Error;
 use std::str::FromStr;
 
 pub mod sync_update;
-pub mod visit_sync;
+pub mod sync_visit;
 
 #[derive(Deserialize, Serialize, Clone)]
 pub struct SyncHistoryLedger {
@@ -15,7 +15,7 @@ pub struct SyncHistoryLedger {
 
 impl FromStr for SyncHistoryLedger {
     type Err = AError;
-    
+
     fn from_str(string: &str) -> Result<Self, Self::Err> {
         if let Ok(res) = serde_json::from_str(&string) {
             Ok(res)

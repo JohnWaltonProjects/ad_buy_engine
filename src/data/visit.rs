@@ -34,7 +34,8 @@ pub struct VisitClick {}
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Visit {
-    pub id: i64,
+    pub _id: i64,
+    pub _rev: String,
     pub account_id: Uuid,
     pub campaign_id: Uuid,
     pub traffic_source_id: Uuid,
