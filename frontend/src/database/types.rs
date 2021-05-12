@@ -43,25 +43,28 @@ pub struct Document {
     pub _rev: String,
     pub data: Visit,
 }
-
-impl From<Visit> for Document {
-    fn from(v: Visit) -> Document {
-        Self {
-            _id: v.id.to_string(),
-            _rev: new_string!(""),
-            data: v,
-        }
-    }
-}
-
-impl From<Document> for Visit {
-    fn from(d: Document) -> Self {
-        d.data
-    }
-}
+use pouch;
+use serde_json::json;
+use serde_json::Number;
+use serde_json::Value as SerdeJsonValue;
+// impl From<Visit> for Document {
+//     fn from(v: Visit) -> Document {
+//         Self {
+//             _id: v.id.to_string(),
+//             _rev: new_string!(""),
+//             data: v,
+//         }
+//     }
+// }
+//
+// impl From<Document> for Visit {
+//     fn from(d: Document) -> Self {
+//         d.data
+//     }
+// }
 
 impl TryFrom<Document> for JsValue {
-    type Error = super::errors::Error;
+    type Error = super::errors::FrontendError;
 
     fn try_from(document: Document) -> Result<Self, Self::Error> {
         match JsValue::from_serde(&document) {
@@ -80,4 +83,22 @@ impl TryFrom<JsValue> for Document {
             Err(error) => Err(error.into()),
         }
     }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct BulkResponse {
+    pub offset: String,
+    pub total_rows: String,
+    pub rows: Vec<ResponseRow>,
+}
+#[derive(Serialize, Deserialize)]
+pub struct ResponseRow {
+    pub doc: Visit,
+    pub id: String,
+    pub key: String,
+    pub value: ResponseValue,
+}
+#[derive(Serialize, Deserialize)]
+pub struct ResponseValue {
+    pub rev: String,
 }

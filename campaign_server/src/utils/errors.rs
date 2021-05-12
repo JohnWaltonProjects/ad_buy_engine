@@ -77,6 +77,12 @@ impl From<Vec<String>> for ErrorResponse {
     }
 }
 
+impl From<couch_rs::error::CouchError> for ApiError {
+    fn from(error: couch_rs::error::CouchError) -> ApiError {
+        ApiError::InternalServerError(format!("poucherr:{}", error.message))
+    }
+}
+
 /// Convert DBErrors to ApiErrors
 impl From<DBError> for ApiError {
     fn from(error: DBError) -> ApiError {

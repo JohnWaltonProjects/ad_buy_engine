@@ -80,6 +80,11 @@ pub async fn server() -> std::io::Result<()> {
     let app_state = init_state(filtered_restored);
     let store = MemoryStore::new();
     let campaign_agent = CampaignAgent::start("campaign_server:1488");
+    let couch = couch_rs::Client::new(
+        "couch_database:5984",
+        "couched_visits",
+        "uX2b6@q5CxOjT7NrxYDc",
+    )?;
 
     let server = HttpServer::new(move || {
         App::new()
@@ -98,6 +103,7 @@ pub async fn server() -> std::io::Result<()> {
             .data(Client::new())
             .data(pool.clone())
             .data(cache.clone())
+            .data(couch.clone())
             .app_data(app_state.clone())
             .wrap_fn(|req, srv| {
                 println!("\n");

@@ -1,6 +1,7 @@
 use crate::api::account::{get_account_model, get_all_accounts, update_account};
 use crate::api::crud_element::process_crud;
 use crate::api::health::get_team_id;
+use crate::api::pouch_db::replicate;
 use crate::api::sync_elements;
 use crate::api::{
     auth::{login, logout},
@@ -39,6 +40,7 @@ pub fn private_routes(cfg: &mut web::ServiceConfig) {
             .service(resource("/account").route(post().to(update_account)))
             .service(resource("/sync_elements").route(post().to(sync_elements::sync))),
     )
+    .service(resource("/visits/{}").route(web::route().to(replicate)))
     .service(
         web::scope("/secure").wrap(AuthMiddleware).service(
             Files::new("", DIRECTORY_LOCATION_MAIN_SECURE_STATIC)

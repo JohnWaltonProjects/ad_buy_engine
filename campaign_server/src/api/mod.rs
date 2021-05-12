@@ -6,6 +6,7 @@ pub mod crud;
 pub mod crud_element;
 pub mod health;
 pub mod invitation;
+pub mod pouch_db;
 pub mod sync_elements;
 pub mod update_app_state;
 pub mod user;
