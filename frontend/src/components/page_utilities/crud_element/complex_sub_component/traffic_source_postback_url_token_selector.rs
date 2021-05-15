@@ -7,9 +7,9 @@ use strum::IntoEnumIterator;
 use web_sys::Element;
 use yew::format::Json;
 use yew::prelude::*;
+use yew::services::storage::Area;
+use yew::services::StorageService;
 use yew::virtual_dom::VList;
-use yew_services::storage::Area;
-use yew_services::StorageService;
 
 pub enum Msg {
     OnSelect(DataURLToken),

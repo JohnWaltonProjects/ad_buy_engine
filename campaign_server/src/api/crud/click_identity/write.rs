@@ -1,11 +1,10 @@
 use crate::db::crud::click_identity;
-use crate::db::visits;
 use crate::utils::database::PgPool;
 use crate::utils::errors::ApiError;
 use actix::Addr;
 use actix_redis::{Command, RedisActor, RespValue};
 use actix_web::web::{block, Data};
-use ad_buy_engine::data::backend_models::visit::ClickIdentityModal;
+use ad_buy_engine::data::backend_models::click_identity::ClickIdentityModal;
 use ad_buy_engine::data::visit::click_map::ClickMap;
 use ad_buy_engine::data::visit::visit_identity::ClickIdentity;
 use ad_buy_engine::data::visit::Visit;
@@ -31,7 +30,7 @@ pub async fn create_click_identity(
     let req = redis.send(Command(resp_array![
         "SET",
         payload.ua_ip_id.clone(),
-        serde_json::to_string(&payload).expect("TYgsdfg")
+        ad_buy_engine::serde_json::to_string(&payload).expect("TYgsdfg")
     ]));
     match req.await {
         Ok(res) => match res {

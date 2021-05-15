@@ -16,8 +16,9 @@ use uuid::Uuid;
 pub struct LinkedConversion {
     /// Subid that is posted from Offer Source
     pub id: String,
-    pub visit_id: i64,
+    pub visit_id: String,
     pub campaign_id: String,
+    pub account_id: String,
     pub offer_id: String,
     pub created_at: i64,
 }
@@ -25,11 +26,17 @@ pub struct LinkedConversion {
 // todo if multiple clicks do not want to make multiple linked_conversion records in database, need to
 #[cfg(feature = "backend")]
 impl LinkedConversion {
-    pub fn create(visit_id: i64, campaign_id: &Uuid, offer_id: &Uuid) -> Self {
+    pub fn create(
+        account_id: &String,
+        visit_id: &String,
+        campaign_id: &String,
+        offer_id: &Uuid,
+    ) -> Self {
         Self {
             id: generate_random_string(24),
-            visit_id: visit_id,
-            campaign_id: campaign_id.to_string(),
+            visit_id: visit_id.clone(),
+            campaign_id: campaign_id.clone(),
+            account_id: account_id.clone(),
             offer_id: offer_id.to_string(),
             created_at: Utc::now().timestamp(),
         }

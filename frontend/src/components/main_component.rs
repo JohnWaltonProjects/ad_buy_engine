@@ -5,6 +5,7 @@ use crate::appstate::app_state::AppState;
 use crate::components::account_component::AccountComponent;
 use crate::components::account_tab_section::custom_conversions::modal::ModalType;
 use crate::components::app_bar::AppBar;
+// use crate::components::database_component::DatabaseComponent;
 use crate::components::page_controller::PageController;
 use crate::components::page_utilities::crud_element::crud_campaign::CRUDCampaign;
 use crate::components::page_utilities::crud_element::crud_funnels::CRUDFunnel;
@@ -66,13 +67,16 @@ impl Component for MainComponent {
             })
         } else {
             html! {
-                        <div class="uk-child-width-1-1 uk-grid-collapse uk-background-default" uk-grid="">
+                <>
+                <div class="uk-child-width-1-1 uk-grid-collapse uk-background-default" uk-grid="">
                             <div><AppBar state=Rc::clone(&self.props.state) /></div>
                             <div><PageController state=Rc::clone(&self.props.state)  /></div>
                             {self.render_dashboard()}
 
                             {self.render_crud_modal()}
                         </div>
+                // <DatabaseComponent state=rc!(self.props.state) />
+                </>
             }
         }
     }

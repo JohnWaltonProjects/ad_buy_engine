@@ -9,8 +9,8 @@ use actix_redis::{Command, RedisActor, RespValue};
 use actix_web::http::header::{LOCATION, REFERER, USER_AGENT};
 use actix_web::web::{block, Data, Path, Query};
 use actix_web::{HttpRequest, HttpResponse};
+use ad_buy_engine::couch_rs::Client;
 use ad_buy_engine::data::backend_models::linked_conversion::LinkedConversion;
-use ad_buy_engine::data::backend_models::visit::VisitModel;
 use ad_buy_engine::data::elements::campaign::Campaign;
 use ad_buy_engine::data::elements::funnel::SequenceType;
 use ad_buy_engine::data::elements::matrix::MatrixData;
@@ -19,30 +19,30 @@ use ad_buy_engine::data::visit::click_map::ClickMap;
 use ad_buy_engine::data::visit::geo_ip::GeoIPData;
 use ad_buy_engine::data::visit::user_agent::UserAgentData;
 use ad_buy_engine::data::visit::visit_identity::ClickIdentity;
-use ad_buy_engine::data::visit::Visit;
+use ad_buy_engine::data::visit::{CouchedVisit, Visit};
 use ad_buy_engine::traversal::Bft;
 use ad_buy_engine::Url;
+use ad_buy_engine::Uuid;
 use std::collections::HashMap;
 use std::net::IpAddr;
 use std::ops::Deref;
 use std::str::FromStr;
 use std::sync::Mutex;
-use uuid::Uuid;
 
 pub async fn extra_single(
     req: HttpRequest,
     pool: Data<PgPool>,
     app_state: Data<Mutex<HashMap<Uuid, Campaign>>>,
     redis: Data<Addr<RedisActor>>,
+    couch: Data<Client>,
 ) -> Result<HttpResponse, ApiError> {
     let restored_click_identity = from_request_extract_identity(&req, &redis, &pool).await?;
     let restored_click_map = restored_click_identity.click_map.clone();
-    let local_pool = pool.clone();
-    let visit_id = restored_click_identity.visit_id;
-    let mut restored_visit: Visit =
-        block(move || VisitModel::get(visit_id, local_pool.get().expect("TGHfgds").deref()))
-            .await?
-            .into();
+    let visit_id = restored_click_identity.visit_id.clone();
+    let account_id = restored_click_identity.account_id.clone();
+
+    let database = couch.db(&account_id).await?;
+    let mut restored_visit: Visit = CouchedVisit::get(&visit_id, &database).await?.into();
     let campaign_id = restored_visit.campaign_id.clone();
 
     if let Some(sequence_type) = restored_click_identity.click_map.seq_type {
@@ -66,9 +66,18 @@ pub async fn extra_single(
 
                         let local_pool = pool.clone();
 
+                        let account_id = account_id.clone();
+                        let visit_id = visit_id.clone();
+                        let campaign_id = campaign_id.to_string();
+
                         let block_result = block(move || {
                             LinkedConversion::new(
-                                LinkedConversion::create(visit_id, &campaign_id, &offer.offer_id),
+                                LinkedConversion::create(
+                                    &account_id,
+                                    &visit_id,
+                                    &campaign_id,
+                                    &offer.offer_id,
+                                ),
                                 local_pool.get().expect("THRDF").deref(),
                             )
                         })
@@ -87,15 +96,7 @@ pub async fn extra_single(
                     _ => {}
                 }
 
-                let local_pool = pool.clone();
-                block(move || {
-                    VisitModel::update(
-                        visit_id,
-                        restored_visit.into(),
-                        local_pool.get().expect("T%$F").deref(),
-                    )
-                })
-                .await?;
+                CouchedVisit::update(&mut restored_visit.into(), &database).await?;
 
                 Ok(HttpResponse::Found().header(LOCATION, url).finish())
             }
@@ -114,20 +115,21 @@ pub async fn extra_single(
                         TerseElement::new(offer.offer_id, Some(offer.url.clone())),
                     )));
 
-                    let local_pool = pool.clone();
-                    block(move || {
-                        VisitModel::update(
-                            restored_visit.id.clone(),
-                            restored_visit.into(),
-                            local_pool.get().expect("asdf").deref(),
-                        )
-                    })
-                    .await?;
+                    CouchedVisit::update(&mut restored_visit.into(), &database).await?;
 
                     let local_pool = pool.clone();
+                    let account_id = account_id.clone();
+                    let campaign_id = campaign_id.to_string();
+                    let visit_id = visit_id.clone();
+
                     let result = block(move || {
                         LinkedConversion::new(
-                            LinkedConversion::create(visit_id, &campaign_id, &offer.offer_id),
+                            LinkedConversion::create(
+                                &account_id,
+                                &visit_id,
+                                &campaign_id,
+                                &offer.offer_id,
+                            ),
                             local_pool.get().expect("Y^%JH").deref(),
                         )
                     })

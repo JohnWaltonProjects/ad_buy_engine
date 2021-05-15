@@ -6,8 +6,8 @@ use crate::components::data_table::data_state_logic_models::table_state::TableDa
 use crate::utils::routes::AppRoute;
 use uuid::Uuid;
 use yew::format::Json;
-use yew_services::storage::Area;
-use yew_services::StorageService;
+use yew::services::storage::Area;
+use yew::services::StorageService;
 
 #[derive(Deserialize, Serialize, Clone, PartialEq)]
 pub struct ReportTabState {

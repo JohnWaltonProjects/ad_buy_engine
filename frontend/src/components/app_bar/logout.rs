@@ -4,8 +4,8 @@ use ad_buy_engine::constant::apis::private::API_URL_LOGOUT;
 use ad_buy_engine::AError;
 use yew::format::Nothing;
 use yew::prelude::*;
-use yew_services::fetch::{FetchTask, Request, Response};
-use yew_services::FetchService;
+use yew::services::fetch::{FetchTask, Request, Response};
+use yew::services::FetchService;
 
 pub enum Msg {
     Click,

@@ -4,8 +4,8 @@ use ad_buy_engine::constant::browser_storage_keys::REPORT_TABS_RESTORE_KEYS;
 use std::cell::{RefCell, RefMut};
 use uuid::Uuid;
 use yew::format::Json;
-use yew_services::storage::Area;
-use yew_services::StorageService;
+use yew::services::storage::Area;
+use yew::services::StorageService;
 
 #[derive(Deserialize, Serialize, Clone, PartialEq)]
 pub enum ActivatedTab {

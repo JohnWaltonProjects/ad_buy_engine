@@ -4,6 +4,7 @@ use crate::data::elements::landing_page::LandingPage;
 use crate::data::elements::offer::Offer;
 use crate::data::elements::offer_source::OfferSource;
 use crate::data::elements::traffic_source::TrafficSource;
+#[cfg(feature = "couch")]
 use crate::data::visit::Visit;
 use chrono::{DateTime, NaiveDateTime, Utc};
 use uuid::Uuid;
@@ -13,6 +14,7 @@ pub struct SyncVisitsRequest {
     pub date_of_newest_visit: NaiveDateTime,
 }
 
+#[cfg(feature = "couch")]
 #[derive(Deserialize, Serialize, Clone)]
 pub struct SyncVisitsResponse {
     pub visits: Vec<Visit>,

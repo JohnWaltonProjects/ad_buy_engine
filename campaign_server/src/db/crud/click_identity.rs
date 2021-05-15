@@ -1,16 +1,16 @@
 use crate::utils::database::PgPool;
 use crate::utils::errors::ApiError;
+use ad_buy_engine::chrono::Utc;
 use ad_buy_engine::data::backend_models::account::AccountModel;
 use ad_buy_engine::data::backend_models::campaign::CampaignModel;
-use ad_buy_engine::data::backend_models::visit::ClickIdentityModal;
+use ad_buy_engine::data::backend_models::click_identity::ClickIdentityModal;
 use ad_buy_engine::data::elements::campaign::Campaign;
 use ad_buy_engine::data::visit::visit_identity::ClickIdentity;
-use chrono::Utc;
-use diesel::insert_into;
-use diesel::prelude::*;
-use diesel::query_builder::IntoUpdateTarget;
-use diesel::update;
-use uuid::Uuid;
+use ad_buy_engine::diesel::insert_into;
+use ad_buy_engine::diesel::prelude::*;
+use ad_buy_engine::diesel::query_builder::IntoUpdateTarget;
+use ad_buy_engine::diesel::update;
+use ad_buy_engine::uuid::Uuid;
 
 pub fn create_click_identity(
     pool: &PgPool,

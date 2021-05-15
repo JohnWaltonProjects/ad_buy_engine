@@ -1,5 +1,6 @@
 use crate::components::tab_state::{ActivatedTab, TabState};
 use crate::utils::routes::AppRoute;
+use ad_buy_engine::chrono::NaiveDateTime;
 use ad_buy_engine::data::account::Account;
 use ad_buy_engine::data::elements::campaign::Campaign;
 use ad_buy_engine::data::elements::funnel::Funnel;
@@ -8,15 +9,15 @@ use ad_buy_engine::data::elements::offer::Offer;
 use ad_buy_engine::data::elements::offer_source::OfferSource;
 use ad_buy_engine::data::elements::traffic_source::TrafficSource;
 use ad_buy_engine::data::sync::SyncHistoryLedger;
+#[cfg(feature = "couch")]
 use ad_buy_engine::data::visit::Visit;
-use chrono::NaiveDateTime;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 use yew::format::Json;
-use yew_services::storage::Area;
-use yew_services::StorageService;
+use yew::services::storage::Area;
+use yew::services::StorageService;
 
 pub type STATE = Rc<RefCell<AppState>>;
 

@@ -1,7 +1,6 @@
 use crate::appstate::app_state::{AppState, STATE};
 use crate::components::page_utilities::crud_element::complex_sub_component::rhs_sequence_builder::{RHSSequenceBuilder, Msg as SeqMsg};
 use crate::components::page_utilities::crud_element::dropdowns::landing_page_dropdown::LandingPageDropdown;
-use crate::components::page_utilities::crud_element::dropdowns::offer_dropdown::OfferDropdown;
 use crate::notify_danger;
 use crate::utils::javascript::js_bindings::toggle_uk_dropdown;
 use ad_buy_engine::constant::{
@@ -12,7 +11,6 @@ use ad_buy_engine::data::elements::funnel::SequenceType;
 use ad_buy_engine::data::elements::landing_page::LandingPage;
 use ad_buy_engine::data::elements::matrix::{Matrix, MatrixData, Transform};
 use ad_buy_engine::data::elements::offer::Offer;
-use serde::de::Unexpected::Seq;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::{Arc, RwLock};
@@ -21,13 +19,14 @@ use yew::format::Json;
 use yew::html::Scope;
 use yew::prelude::*;
 use yew::virtual_dom::{VList, VNode};
-use yew_services::storage::Area;
-use yew_services::StorageService;
+use yew::services::storage::Area;
+use yew::services::StorageService;
 use uuid::Uuid;
 use crate::components::page_utilities::update_element::Msg::Update;
 use crate::components::page_utilities::crud_element::crud_funnels::CRUDFunnel;
 use crate::components::page_utilities::crud_element::complex_sub_component::campaign_sequence_builder::{CampaignSequenceBuilder, Msg as CMsg};
 use ad_buy_engine::data::elements::matrix::live_matrix::LiveMatrix;
+use crate::components::page_utilities::crud_element::dropdowns::offer_dropdown::OfferDropdown;
 
 pub type RootMatrix = Rc<RefCell<Matrix>>;
 
@@ -777,7 +776,7 @@ impl MatrixBuilder {
                 for (idx, source_matrix) in matrix_handle.children_groups.iter().enumerate() {
                     if let Some(local_matrix) = source_matrix.get(0) {
                         let lid = local_matrix.read().unwrap().value.id.clone();
-                        let rmc = self.link.callback(move |_| Msg::RemoveChild(lid));
+                        let rmc = self.link.callback(move |lid: Uuid| Msg::RemoveChild(lid));
 
                         let campaign_sequence_builder_link =
                             if let Some(s) = &self.props.campaign_sequence_builder_link {
@@ -793,9 +792,10 @@ impl MatrixBuilder {
                                 None
                             };
 
-                        matrices.push(VNode::from(html! {
+                        let label = format!("Matrix #{}", idx + 1);
+                        let node = html! {
                         <div class="uk-margin-top">
-                                  {label!(&format!("Matrix #{}", idx + 1))}
+                                  {label!(label)}
                                     <MatrixBuilder
                                 remove_child=Some(rmc)
                                     root_matrix=arc!(self.props.root_matrix)
@@ -806,7 +806,8 @@ impl MatrixBuilder {
                                     campaign_sequence_builder_link=campaign_sequence_builder_link
                                     />
                         </div>
-                        }));
+                        };
+                        matrices.push(VNode::from(node));
                     }
                 }
 

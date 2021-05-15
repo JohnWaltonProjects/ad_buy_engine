@@ -23,8 +23,8 @@ use yew::virtual_dom::{VList, VNode};
 use crate::components::page_utilities::crud_element::complex_sub_component::matrix_builder::MatrixBuilder;
 use ad_buy_engine::data::elements::matrix::Matrix;
 use std::sync::{Arc, RwLock};
-use yew_services::storage::Area;
-use yew_services::StorageService;
+use yew::services::storage::Area;
+use yew::services::StorageService;
 
 pub enum Msg {
     UpdateRootMatrix(Arc<RwLock<Matrix>>),

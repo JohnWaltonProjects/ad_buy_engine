@@ -8,10 +8,9 @@ use crate::api::{
     crud_element,
     health::get_health,
     invitation,
-    user::{create_user, get_user},
+    user::create_user,
 };
 use crate::utils::middleware::auth::Auth as AuthMiddleware;
-use crate::utils::middleware::click_processor::ClickProcessor;
 use actix_files::Files;
 use actix_web::web::{get, post, resource};
 use actix_web::{web, HttpResponse};
@@ -40,7 +39,7 @@ pub fn private_routes(cfg: &mut web::ServiceConfig) {
             .service(resource("/account").route(post().to(update_account)))
             .service(resource("/sync_elements").route(post().to(sync_elements::sync))),
     )
-    .service(resource("/visits/{}").route(web::route().to(replicate)))
+    .service(resource("/visits/{account_id}").route(web::route().to(replicate)))
     .service(
         web::scope("/secure").wrap(AuthMiddleware).service(
             Files::new("", DIRECTORY_LOCATION_MAIN_SECURE_STATIC)

@@ -1,7 +1,7 @@
 use crate::utils::errors::ApiError;
-use diesel::pg::PgConnection;
-use diesel::r2d2::{ConnectionManager, Pool, PoolError, PooledConnection};
-use dotenv::dotenv;
+use ad_buy_engine::diesel::pg::PgConnection;
+use ad_buy_engine::diesel::r2d2::{ConnectionManager, Pool, PoolError, PooledConnection};
+use ad_buy_engine::dotenv::dotenv;
 use std::env;
 
 pub type PgPool = Pool<ConnectionManager<PgConnection>>;

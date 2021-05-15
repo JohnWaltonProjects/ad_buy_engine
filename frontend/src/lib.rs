@@ -21,6 +21,7 @@ extern crate wee_alloc;
 extern crate ad_buy_engine;
 
 use wasm_bindgen::prelude::*;
+
 #[macro_use]
 pub mod macros;
 pub mod agents;
@@ -30,10 +31,6 @@ pub mod database;
 pub mod error;
 pub mod prelude;
 pub mod utils;
-
-pub use ad_buy_engine::traversal;
-
-use yew_router::prelude::*;
 
 use crate::agents::fetch_agent::{FetchRequest, FetchResponse};
 use crate::agents::tick_tock::{TickTock, TickTockRequest};
@@ -53,7 +50,10 @@ use ad_buy_engine::constant::browser_storage_keys::{
 };
 use ad_buy_engine::data::account::Account;
 use ad_buy_engine::data::sync::SyncHistoryLedger;
+#[cfg(feature = "couch")]
 use ad_buy_engine::data::visit::Visit;
+use ad_buy_engine::data::visit::Visit;
+pub use ad_buy_engine::traversal;
 use ad_buy_engine::AError;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -61,11 +61,12 @@ use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 use yew::format::Json;
 use yew::prelude::*;
+use yew::services::fetch::{FetchTask, Request, Response};
+use yew::services::storage::Area;
+use yew::services::{FetchService, StorageService};
 use yew::virtual_dom::VNode;
 use yew_router::agent::RouteRequest::ChangeRoute;
-use yew_services::fetch::{FetchTask, Request, Response};
-use yew_services::storage::Area;
-use yew_services::{FetchService, StorageService};
+use yew_router::prelude::*;
 
 pub struct RootComponent {
     child_component: Option<AppRoute>,

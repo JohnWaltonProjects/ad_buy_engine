@@ -1,4 +1,4 @@
-use serde_json::Error as SerdeError;
+use ad_buy_engine::serde_json::Error as SerdeError;
 use std::fmt::{Debug, Display, Formatter};
 use wasm_bindgen::JsValue;
 

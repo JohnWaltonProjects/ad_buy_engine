@@ -1,13 +1,13 @@
 use crate::db::account_depricating::{query_account, return_all_accounts, update_account_database};
 use crate::utils::authentication::{decode_jwt, PrivateClaim};
-use crate::utils::database::{PgPool, get_conn};
+use crate::utils::database::{get_conn, PgPool};
 use crate::utils::errors::ApiError;
 use crate::utils::helpers::{respond_json, respond_ok};
 use actix_identity::Identity;
 use actix_web::web::{block, Data, Json};
-use ad_buy_engine::data::account::Account;
 use actix_web::HttpResponse;
-use diesel::RunQueryDsl;
+use ad_buy_engine::data::account::Account;
+use ad_buy_engine::diesel::RunQueryDsl;
 use std::ops::Deref;
 
 pub async fn get_account_model(
@@ -16,8 +16,8 @@ pub async fn get_account_model(
 ) -> Result<Json<Account>, ApiError> {
     let restored_identity: PrivateClaim =
         decode_jwt(&id.identity().expect("g3qw")).map_err(|e| e)?;
-    println!("acc id :  {}",&restored_identity.account_id);
-    println!("user id :  {}",&restored_identity.user_id);
+    println!("acc id :  {}", &restored_identity.account_id);
+    println!("user id :  {}", &restored_identity.user_id);
     respond_json(
         block(move || query_account(&pool, restored_identity.account_id))
             .await?
@@ -45,10 +45,7 @@ pub async fn update_account(
     )
 }
 
-pub async fn get_all_accounts(
-    pool: Data<PgPool>,
-) -> Result<Json<Vec<Account>>, ApiError> {
-
+pub async fn get_all_accounts(pool: Data<PgPool>) -> Result<Json<Vec<Account>>, ApiError> {
     let mut list = block(move || return_all_accounts(&pool)).await?;
     let resp = list
         .iter()
@@ -60,5 +57,3 @@ pub async fn get_all_accounts(
 
     respond_json(resp)
 }
-
-

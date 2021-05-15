@@ -16,13 +16,13 @@ use ad_buy_engine::data::visit::click_map::ClickMap;
 use ad_buy_engine::data::visit::user_agent::UserAgentData;
 use ad_buy_engine::data::visit::visit_identity::ClickIdentity;
 use ad_buy_engine::data::visit::Visit;
+use ad_buy_engine::Uuid;
 use ad_buy_engine::{generate_random_string, Url};
 use std::collections::HashMap;
 use std::net::IpAddr;
 use std::ops::Deref;
 use std::str::FromStr;
 use std::sync::Mutex;
-use uuid::Uuid;
 
 pub async fn process_initial_click(
     req: HttpRequest,
@@ -33,6 +33,7 @@ pub async fn process_initial_click(
     traffic_source_parameters: Query<HashMap<String, String>>,
 ) -> Result<HttpResponse, ApiError> {
     if let Some(found) = find_campaign(campaign_id.into_inner(), app_state, &pool) {
+        let account_id = &found.account_id.to_string();
         let ua = req.headers().get(USER_AGENT).unwrap().to_str().unwrap();
         let ip = req.peer_addr().unwrap().ip();
         let ip = IpAddr::from_str("172.58.38.197").unwrap();
@@ -71,10 +72,15 @@ pub async fn process_initial_click(
             click_map.clone(),
             click_event,
         );
+        let visit_id = &visit._id;
 
         if let MatrixData::Offer(offer) = &click_map.value.data {
-            let linked_conversion =
-                LinkedConversion::create(visit.id, &found.campaign_id, &offer.offer_id);
+            let linked_conversion = LinkedConversion::create(
+                &account_id,
+                &visit_id.clone(),
+                &found.campaign_id.to_string(),
+                &offer.offer_id,
+            );
             let local_pool = pool.clone();
             let result = block(move || {
                 let pooled_connection = local_pool.get_ref().get().expect("%Y^RFSTg");
@@ -85,7 +91,13 @@ pub async fn process_initial_click(
             .await?;
         }
 
-        let click_identity = ClickIdentity::new(visit.id, ua.to_string(), ip, click_map);
+        let click_identity = ClickIdentity::new(
+            account_id.clone(),
+            visit_id.clone(),
+            ua.to_string(),
+            ip,
+            click_map,
+        );
         store_initial_click(redis.into_inner().as_ref(), pool, click_identity, visit).await?;
 
         Ok(HttpResponse::Found()

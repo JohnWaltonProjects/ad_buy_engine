@@ -9,8 +9,8 @@
 //! multiple processing.
 
 // use crate::utils::database::DatabaseConnection;
-use dotenv::dotenv;
-use serde::Deserialize;
+use ad_buy_engine::dotenv::dotenv;
+// use ad_buy_engine::serde::Deserialize;
 
 #[derive(Clone, Deserialize, Debug)]
 pub struct Config {
@@ -39,7 +39,7 @@ lazy_static! {
 fn get_config() -> Config {
     dotenv().ok();
 
-    match envy::from_env::<Config>() {
+    match ad_buy_engine::envy::from_env::<Config>() {
         Ok(config) => config,
         Err(error) => panic!("Configuration Error: {:#?}", error),
     }

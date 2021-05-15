@@ -9,8 +9,8 @@ use yew::format::Json;
 use yew::prelude::*;
 use yew::virtual_dom::VList;
 
-use yew_services::storage::Area;
-use yew_services::StorageService;
+use yew::services::storage::Area;
+use yew::services::StorageService;
 use uuid::Uuid;
 use crate::{notify_danger, notify_primary, notify_debug};
 use crate::components::page_utilities::crud_element::complex_sub_component::plus_button::PlusButton;

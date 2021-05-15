@@ -8,11 +8,11 @@ use strum::IntoEnumIterator;
 use web_sys::Element;
 use yew::format::Json;
 use yew::prelude::*;
+use yew::services::storage::Area;
+use yew::services::StorageService;
 use yew::virtual_dom::{VList, VNode};
 use yew_router::agent::RouteAgent;
 use yew_router::agent::RouteRequest::ChangeRoute;
-use yew_services::storage::Area;
-use yew_services::StorageService;
 
 pub enum Msg {
     Click(PrimeElement),

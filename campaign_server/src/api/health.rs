@@ -4,7 +4,7 @@ use crate::utils::helpers::respond_json;
 use actix_identity::Identity;
 use actix_web::web::{block, Data, Json};
 use actix_web::HttpResponse;
-use uuid::Uuid;
+use ad_buy_engine::uuid::Uuid;
 
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub struct HealthResponse {

@@ -1,10 +1,10 @@
 use crate::utils::config::CONFIG;
 use crate::utils::errors::ApiError;
 use actix_identity::{CookieIdentityPolicy, IdentityService};
+use ad_buy_engine::chrono::{Duration, Utc};
+use ad_buy_engine::uuid::Uuid;
 use argon2rs::argon2i_simple;
-use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
-use uuid::Uuid;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct PrivateClaim {
@@ -49,7 +49,7 @@ pub fn get_identity_service() -> IdentityService<CookieIdentityPolicy> {
     IdentityService::new(
         CookieIdentityPolicy::new(&CONFIG.session_key.as_ref())
             .name(&CONFIG.session_name)
-            .max_age_time(time::Duration::days(1))
+            .max_age_time(ad_buy_engine::time::Duration::days(1))
             .secure(true),
     )
 }

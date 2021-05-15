@@ -21,8 +21,8 @@ use yew::prelude::*;
 use yew::virtual_dom::{VList, VNode};
 
 
-use yew_services::storage::Area;
-use yew_services::StorageService;
+use yew::services::storage::Area;
+use yew::services::StorageService;
 use crate::components::primitives::TextInput;
 use crate::components::page_utilities::crud_element::small_switch::SmallSwitch;
 

@@ -6,6 +6,7 @@ use actix_redis::RedisActor;
 use actix_web::error::BlockingError;
 use actix_web::web::{block, Data, Json, Path, Query};
 use actix_web::{HttpRequest, HttpResponse};
+use ad_buy_engine::chrono::Utc;
 use ad_buy_engine::data::account::Account;
 use ad_buy_engine::data::backend_models::campaign::CampaignModel;
 use ad_buy_engine::data::elements::campaign::Campaign;
@@ -17,11 +18,10 @@ use ad_buy_engine::data::elements::landing_page::LandingPage;
 use ad_buy_engine::data::elements::offer::Offer;
 use ad_buy_engine::data::elements::offer_source::OfferSource;
 use ad_buy_engine::data::elements::traffic_source::TrafficSource;
-use chrono::Utc;
+use ad_buy_engine::uuid::Uuid;
 use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock};
-use uuid::Uuid;
 
 pub fn find_campaign(
     id: Uuid,
@@ -40,7 +40,7 @@ pub fn find_campaign(
     } else {
         let mut restored: Campaign = {
             use crate::schema::campaigns::dsl::{campaigns, id as campaign_id};
-            use diesel::prelude::*;
+            use ad_buy_engine::diesel::prelude::*;
             campaigns
                 .filter(campaign_id.eq(id.to_string()))
                 .first::<CampaignModel>(&pool.get().expect("FREds"))

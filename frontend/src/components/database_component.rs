@@ -1,17 +1,17 @@
-//use yew::services::ConsoleService;
 use crate::appstate::app_state::STATE;
 use crate::database::errors::FrontendError;
 use crate::database::{Database, DatabaseInfo};
 use uuid::Uuid;
 use wasm_bindgen::prelude::*;
 use yew::prelude::*;
-use yew_services::ConsoleService;
+use yew::services::ConsoleService;
 use yewtil::future::LinkFuture;
 
+// #[derive(LinkFuture)]
 pub struct DatabaseComponent {
     link: ComponentLink<Self>,
     db_info: DatabaseInfo,
-    props: Props,
+    // props: Props,
 }
 
 #[derive(Properties, Clone)]
@@ -19,15 +19,15 @@ pub struct Props {
     pub state: STATE,
 }
 
-enum Msg {
+pub enum Msg {
     FetchDatabaseInfo,
     FetchDatabaseInfoDone(DatabaseInfo),
     FetchDatabaseInfoFailed,
 }
 
-async fn fetch_db_info(account_id: Uuid) -> Result<DatabaseInfo, FrontendError> {
+async fn fetch_db_info(account_id: String) -> Result<DatabaseInfo, FrontendError> {
     ConsoleService::info("Pouch Yew example: Fetching database info");
-    let db = Database::new(account_id.to_string().as_str());
+    let db = Database::new(account_id.as_str());
     db.info().await
 }
 
@@ -36,18 +36,21 @@ impl Component for DatabaseComponent {
     type Properties = Props;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        let account_id = props.state.borrow().account.borrow().account_id.clone();
+
         Self {
             link,
-            db_info: DatabaseInfo::default(),
-            props,
+            db_info: DatabaseInfo::new(&account_id),
+            // props,
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::FetchDatabaseInfo => {
+                let database_name = self.db_info.db_name.clone();
                 let future = async {
-                    match fetch_db_info().await {
+                    match fetch_db_info(database_name).await {
                         Ok(info) => Msg::FetchDatabaseInfoDone(info),
                         Err(_) => Msg::FetchDatabaseInfoFailed,
                     }
@@ -75,12 +78,9 @@ impl Component for DatabaseComponent {
     fn view(&self) -> Html {
         html! {
         <div>
-                    <p>{"DB"}</p>
-                    // <p><b>{ format!("{} (v{})", "Yew & Pouch", pouch::version()) }</b></p>
-                    // <button onclick=self.link.callback(|_| Msg::AddOne)>{ "+1" }</button>
-                    // <p>{ self.value }</p>
-                    // <button onclick=self.link.callback(|_| Msg::FetchDatabaseInfo)>{ "Get Database Info" }</button>
-                    // <p><i>{ format!("{:?}", self.db_info) }</i></p>
+                    <p><b>{ format!("{} (v{})", "Yew & Pouch", pouch::version()) }</b></p>
+                    <button onclick=self.link.callback(|_| Msg::FetchDatabaseInfo)>{ "Get Database Info" }</button>
+                    <p><i>{ format!("{:?}", self.db_info) }</i></p>
         </div>
                 }
     }

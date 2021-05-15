@@ -4,8 +4,8 @@ use std::rc::Rc;
 use web_sys::Element;
 use yew::format::Json;
 use yew::prelude::*;
-use yew_services::storage::Area;
-use yew_services::StorageService;
+use yew::services::storage::Area;
+use yew::services::StorageService;
 
 use ad_buy_engine::data::elements::crud::CreatableElement;
 
@@ -86,8 +86,9 @@ impl Component for NewElement {
 
     fn view(&self) -> Html {
         let html = if self.creatable_elem_btn_should_render() && self.only_render_if_is_main_tab() {
+            let href = self.href.clone();
             html! {
-                    <div class="uk-margin-right"><button uk-toggle="" href={&self.href} onclick=self.link.callback(|_| Msg::Click) class="uk-button uk-button-default uk-button-small uk-background-primary uk-light"><span class="fas fa-plus uk-margin-small-right"></span>{format!("New {}" ,self.get_creatable_element_text())}</button></div>
+                    <div class="uk-margin-right"><button uk-toggle="" href=href onclick=self.link.callback(|_| Msg::Click) class="uk-button uk-button-default uk-button-small uk-background-primary uk-light"><span class="fas fa-plus uk-margin-small-right"></span>{format!("New {}" ,self.get_creatable_element_text())}</button></div>
             }
         } else {
             html! {}

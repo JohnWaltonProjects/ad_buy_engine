@@ -6,8 +6,8 @@
 // use ad_buy_engine::data_state_logic_models::models::EitherCampaignElement;
 // use ad_buy_engine::AError;
 // use yew::format::Json;
-// use yew_services::fetch::{FetchTask, Request, Response};
-// use yew_services::FetchService;
+// use yew::services::fetch::{FetchTask, Request, Response};
+// use yew::services::FetchService;
 //
 // impl FetchAgent {
 //     pub fn sync(&mut self, sync_element: SyncElement) -> Option<FetchTask> {

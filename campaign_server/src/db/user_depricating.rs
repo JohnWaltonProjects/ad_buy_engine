@@ -2,12 +2,12 @@ use crate::schema::users;
 use crate::utils::authentication::hash;
 use crate::utils::database::PgPool;
 use crate::utils::errors::ApiError;
+use ad_buy_engine::chrono::{NaiveDateTime, Utc};
 use ad_buy_engine::data::backend_models::account::AccountModel;
 use ad_buy_engine::data::backend_models::user::UserModel;
+use ad_buy_engine::diesel::prelude::*;
+use ad_buy_engine::uuid::Uuid;
 use ad_buy_engine::UserResponse;
-use chrono::{NaiveDateTime, Utc};
-use diesel::prelude::*;
-use uuid::Uuid;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct NewUser {
@@ -63,13 +63,13 @@ pub fn create(
     use crate::schema::users::dsl::users;
 
     let conn = pool.get()?;
-    println!("new user id {:?}",&new_user.id);
-    println!("new account id {:?}",&account.id);
-    diesel::insert_into(users)
+    println!("new user id {:?}", &new_user.id);
+    println!("new account id {:?}", &account.id);
+    ad_buy_engine::diesel::insert_into(users)
         .values(&new_user)
         .execute(&conn)?;
 
-    diesel::insert_into(accounts)
+    ad_buy_engine::diesel::insert_into(accounts)
         .values(&account)
         .execute(&conn)?;
 

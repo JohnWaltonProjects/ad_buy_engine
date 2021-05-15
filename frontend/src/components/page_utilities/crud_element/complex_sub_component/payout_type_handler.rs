@@ -10,7 +10,7 @@ use ad_buy_engine::data::elements::crud::CreatableElement;
 use ad_buy_engine::data::elements::traffic_source::traffic_source_params::ExternalIDParameter;
 use ad_buy_engine::data::lists::{Currency, DataURLToken};
 use ad_buy_engine::ipnet::IpNet;
-use rust_decimal::Decimal;
+use ad_buy_engine::rust_decimal::Decimal;
 use std::cell::RefCell;
 use std::net::IpAddr;
 use std::rc::Rc;
@@ -23,8 +23,8 @@ use yew::format::Json;
 use yew::prelude::*;
 use yew::virtual_dom::VList;
 
-use yew_services::storage::Area;
-use yew_services::StorageService;
+use yew::services::storage::Area;
+use yew::services::StorageService;
 
 pub enum Msg {
     ParsePayoutValue(InputData),

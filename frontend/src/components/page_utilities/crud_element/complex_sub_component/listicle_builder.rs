@@ -18,8 +18,8 @@ use yew::format::Json;
 use yew::prelude::*;
 use yew::virtual_dom::{VList, VNode};
 
-use yew_services::storage::Area;
-use yew_services::StorageService;
+use yew::services::storage::Area;
+use yew::services::StorageService;
 use crate::components::page_utilities::crud_element::dropdowns::pre_landing_page_dropdown::PreLandingPageDropdown;
 
 #[derive(Properties, Clone)]

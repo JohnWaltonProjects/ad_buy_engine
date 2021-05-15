@@ -3,8 +3,8 @@ use crate::utils::authentication::hash;
 use crate::utils::database::PgPool;
 use crate::utils::errors::ApiError;
 use ad_buy_engine::data::backend_models::invitation::Invitation;
-use diesel::prelude::*;
-use uuid::Uuid;
+use ad_buy_engine::diesel::prelude::*;
+use ad_buy_engine::uuid::Uuid;
 
 // Get
 pub fn find(pool: &PgPool, _id: Uuid) -> Result<Invitation, ApiError> {
@@ -38,11 +38,13 @@ pub fn new(pool: &PgPool, new: &Invitation) -> Result<Invitation, ApiError> {
 
     let conn = pool.get()?;
 
-    diesel::delete(invitation)
+    ad_buy_engine::diesel::delete(invitation)
         .filter(email.eq(&new.email))
         .execute(&conn)?;
 
-    diesel::insert_into(invitation).values(new).execute(&conn)?;
+    ad_buy_engine::diesel::insert_into(invitation)
+        .values(new)
+        .execute(&conn)?;
 
     send_invitation(new)?;
     Ok(new.clone())
@@ -52,7 +54,7 @@ pub fn update(pool: &PgPool, item: &Invitation) -> Result<(), ApiError> {
     use crate::schema::invitation::dsl::{id, invitation};
 
     let conn = pool.get()?;
-    diesel::update(invitation)
+    ad_buy_engine::diesel::update(invitation)
         .filter(id.eq(item.id.clone()))
         .set(item)
         .execute(&conn)?;
@@ -63,7 +65,7 @@ pub fn remove(pool: &PgPool, _id: &String) -> Result<(), ApiError> {
     use crate::schema::invitation::dsl::{id, invitation};
 
     let conn = pool.get()?;
-    diesel::delete(invitation)
+    ad_buy_engine::diesel::delete(invitation)
         .filter(id.eq(_id))
         .execute(&conn)?;
     Ok(())
@@ -73,7 +75,7 @@ pub fn dedup(pool: &PgPool, _email: String) -> Result<(), ApiError> {
     use crate::schema::invitation::dsl::{email, invitation};
 
     let conn = pool.get()?;
-    diesel::delete(invitation)
+    ad_buy_engine::diesel::delete(invitation)
         .filter(email.eq(_email))
         .execute(&conn)?;
     Ok(())

@@ -5,9 +5,8 @@ use crate::utils::errors::ApiError;
 use crate::utils::helpers::{respond_json, respond_ok};
 use actix_identity::Identity;
 use actix_web::web::{block, Data, HttpResponse, Json};
+use ad_buy_engine::serde::Serialize;
 use ad_buy_engine::{LoginRequest, UserResponse};
-use serde::Serialize;
-use validator::Validate;
 
 pub async fn login(
     id: Identity,

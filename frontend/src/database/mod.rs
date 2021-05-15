@@ -18,7 +18,6 @@ pub fn version() -> &'static str {
 
 pub mod prelude {
     pub use super::database::Database;
-    pub use super::errors::Error;
     pub use super::types::DatabaseInfo;
 }
 

@@ -1,15 +1,16 @@
-use actix_web::client::SendRequestError;
+use actix_web::error::PayloadError;
 use actix_web::{
     error::{BlockingError, ResponseError},
     http::StatusCode,
     HttpResponse,
 };
-use derive_more::Display;
-use diesel::{
+use ad_buy_engine::diesel::{
     r2d2::PoolError,
     result::{DatabaseErrorKind, Error as DBError},
 };
-use uuid::parser::ParseError;
+use ad_buy_engine::uuid::parser::ParseError;
+use awc::error::SendRequestError;
+use derive_more::Display;
 
 #[derive(Debug, Display, PartialEq)]
 #[allow(dead_code)]
@@ -45,16 +46,20 @@ impl ResponseError for ApiError {
     fn error_response(&self) -> HttpResponse {
         match self {
             ApiError::BadRequest(error) => {
-                HttpResponse::BadRequest().json::<ErrorResponse>(error.into())
+                let body: ErrorResponse = error.into();
+                HttpResponse::BadRequest().json(body)
             }
             ApiError::NotFound(message) => {
-                HttpResponse::NotFound().json::<ErrorResponse>(message.into())
+                let body: ErrorResponse = message.into();
+                HttpResponse::NotFound().json(body)
             }
             ApiError::ValidationError(errors) => {
-                HttpResponse::UnprocessableEntity().json::<ErrorResponse>(errors.to_vec().into())
+                let body: ErrorResponse = errors.to_vec().into();
+                HttpResponse::UnprocessableEntity().json(body)
             }
             ApiError::Unauthorized(error) => {
-                HttpResponse::Unauthorized().json::<ErrorResponse>(error.into())
+                let body: ErrorResponse = error.into();
+                HttpResponse::Unauthorized().json(body)
             }
             _ => HttpResponse::new(StatusCode::INTERNAL_SERVER_ERROR),
         }
@@ -77,9 +82,15 @@ impl From<Vec<String>> for ErrorResponse {
     }
 }
 
-impl From<couch_rs::error::CouchError> for ApiError {
-    fn from(error: couch_rs::error::CouchError) -> ApiError {
+impl From<ad_buy_engine::couch_rs::error::CouchError> for ApiError {
+    fn from(error: ad_buy_engine::couch_rs::error::CouchError) -> ApiError {
         ApiError::InternalServerError(format!("poucherr:{}", error.message))
+    }
+}
+
+impl From<PayloadError> for ApiError {
+    fn from(error: PayloadError) -> ApiError {
+        ApiError::InternalServerError(format!("PAYLOAD ERR: {:?}", &error))
     }
 }
 

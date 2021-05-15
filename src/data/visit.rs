@@ -18,6 +18,17 @@ use crate::data::visit::click_map::ClickMap;
 use crate::data::visit::conversion::Conversion;
 use crate::AError;
 use chrono::{DateTime, NaiveDateTime, Utc};
+#[cfg(feature = "backend")]
+use couch_rs::document::TypedCouchDocument;
+#[cfg(feature = "backend")]
+use couch_rs::error::CouchResult;
+#[cfg(feature = "backend")]
+use couch_rs::types::document::DocumentCreatedResult;
+#[cfg(feature = "backend")]
+use couch_rs::CouchDocument;
+#[cfg(feature = "backend")]
+use couch_rs::{database::Database, Client};
+
 use either::Either;
 use std::time::Duration;
 use url::Url;
@@ -29,12 +40,78 @@ pub mod geo_ip;
 pub mod user_agent;
 pub mod visit_identity;
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct VisitClick {}
+#[cfg(feature = "backend")]
+#[derive(Serialize, Deserialize, Clone, Debug, CouchDocument)]
+pub struct CouchedVisit {
+    pub _id: String,
+    pub _rev: String,
+    pub account_id: Uuid,
+    pub campaign_id: Uuid,
+    pub traffic_source_id: Uuid,
+    pub funnel_id: Option<Uuid>,
+    pub impressions_from_traffic_source: u64,
+    pub clicks: Vec<ClickEvent>,
+    pub referrer: Option<Url>,
+    pub parameters: HashMap<String, String>,
+    pub click_map: ClickMap,
+    pub user_agent_data: UserAgentData,
+    pub geo_ip_data: GeoIPData,
+    pub conversions: Vec<Conversion>,
+    pub custom_conversions: Vec<CustomConversionEvent>,
+    pub last_updated: DateTime<Utc>,
+}
+
+#[cfg(feature = "backend")]
+impl From<Visit> for CouchedVisit {
+    fn from(visit: Visit) -> Self {
+        Self {
+            _id: visit._id,
+            _rev: visit._rev,
+            account_id: visit.account_id,
+            campaign_id: visit.campaign_id,
+            traffic_source_id: visit.traffic_source_id,
+            funnel_id: visit.funnel_id,
+            impressions_from_traffic_source: visit.impressions_from_traffic_source,
+            clicks: visit.clicks,
+            referrer: visit.referrer,
+            parameters: visit.parameters,
+            click_map: visit.click_map,
+            user_agent_data: visit.user_agent_data,
+            geo_ip_data: visit.geo_ip_data,
+            conversions: visit.conversions,
+            custom_conversions: visit.custom_conversions,
+            last_updated: visit.last_updated,
+        }
+    }
+}
+
+#[cfg(feature = "backend")]
+impl From<CouchedVisit> for Visit {
+    fn from(visit: CouchedVisit) -> Self {
+        Self {
+            _id: visit._id,
+            _rev: visit._rev,
+            account_id: visit.account_id,
+            campaign_id: visit.campaign_id,
+            traffic_source_id: visit.traffic_source_id,
+            funnel_id: visit.funnel_id,
+            impressions_from_traffic_source: visit.impressions_from_traffic_source,
+            clicks: visit.clicks,
+            referrer: visit.referrer,
+            parameters: visit.parameters,
+            click_map: visit.click_map,
+            user_agent_data: visit.user_agent_data,
+            geo_ip_data: visit.geo_ip_data,
+            conversions: visit.conversions,
+            custom_conversions: visit.custom_conversions,
+            last_updated: visit.last_updated,
+        }
+    }
+}
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Visit {
-    pub _id: i64,
+    pub _id: String,
     pub _rev: String,
     pub account_id: Uuid,
     pub campaign_id: Uuid,
@@ -73,7 +150,8 @@ impl Visit {
         };
 
         Self {
-            id: Utc::now().timestamp_nanos(),
+            _id: Utc::now().timestamp_nanos().to_string(),
+            _rev: "".to_string(),
             account_id: c.account_id.clone(),
             campaign_id: c.campaign_id.clone(),
             traffic_source_id: c.traffic_source.traffic_source_id.clone(),
@@ -89,6 +167,21 @@ impl Visit {
             custom_conversions: vec![],
             last_updated: Utc::now(),
         }
+    }
+}
+
+#[cfg(feature = "backend")]
+impl CouchedVisit {
+    pub async fn save(doc: &mut Self, database: &Database) -> DocumentCreatedResult {
+        database.save(doc).await
+    }
+
+    pub async fn get(id: &String, database: &Database) -> CouchResult<Self> {
+        database.get::<Self>(id).await
+    }
+
+    pub async fn update(doc: &mut Self, database: &Database) -> DocumentCreatedResult {
+        database.upsert(doc).await
     }
 }
 

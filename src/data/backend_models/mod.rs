@@ -1,5 +1,6 @@
 pub mod account;
 pub mod campaign;
+pub mod click_identity;
 pub mod funnel;
 pub mod invitation;
 pub mod landing_page;
@@ -9,17 +10,15 @@ pub mod offer;
 pub mod offer_source;
 pub mod traffic_source;
 pub mod user;
-pub mod visit;
 pub mod visit_ledger;
 use super::backend_models::{
     account::AccountModel, campaign::CampaignModel, funnel::FunnelModel, invitation::Invitation,
     landing_page::LandingPageModel, offer::OfferModel, offer_source::OfferSourceModel,
-    traffic_source::TrafficSourceModel, user::UserModel, visit::VisitModel,
+    traffic_source::TrafficSourceModel, user::UserModel,
 };
 
+use crate::data::backend_models::click_identity::ClickIdentityModal;
 use crate::data::backend_models::linked_conversion::LinkedConversion;
-use crate::data::backend_models::visit::ClickIdentityModal;
-use crate::data::backend_models::visit_ledger::VisitLedger;
 use crate::data::visit::visit_identity::ClickIdentity;
 
 #[cfg(feature = "backend")]

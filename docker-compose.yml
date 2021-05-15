@@ -2,18 +2,24 @@ version: '3.7'
 
 services:
 
-#  couch_database:
-#    image: couchdb:latest
-#    container_name: couch_storage
-#    restart: always
-#    ports:
-#      - 5984:5984
-##      - type: bind
-##        source: ./couchdb/docker.ini
-##        target: /opt/couchdb/etc/local.d/
-#    environment:
-#      - COUCHDB_USER=${COUCHDB_USER}
-#      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
+  couch_database:
+    image: couchdb:latest
+    container_name: couch_storage
+    restart: always
+    volumes:
+      - type: volume
+        source: pouchdb_visit_data
+        target: /home/ad_buy_engine/couch/data
+        volume:
+          nocopy: true
+      - type: bind
+        source: /home/ad_buy_engine/couch/data
+        target: /opt/couchdb/data
+    ports:
+      - 5984:5984
+    environment:
+      - COUCHDB_USER=${COUCHDB_USER}
+      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
 
   campaign_db:
     image: postgres:13.2-alpine
@@ -40,7 +46,7 @@ services:
     depends_on:
       - redis
       - campaign_db
-#      - couch_database
+      - couch_database
     build: .
     environment:
       - HOST=0.0.0.0
@@ -88,9 +94,9 @@ services:
         target: /app/regexes.yaml
 
 volumes:
-#  pouchdb_visit_data:
+  pouchdb_visit_data:
 #    external:
-#      name: visit_storage
+#      name: pouchdb_visit_data
   campaign_db_data:
     external:
       name: campaign_server_storage

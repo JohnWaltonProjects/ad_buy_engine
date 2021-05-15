@@ -64,13 +64,13 @@ pub mod http_request_functions {
     use super::*;
     use crate::helper_functions::misc_utils::to_hashmap_from_str;
     use actix_web::web::Query;
-    use uuid::Uuid;
+    use ad_buy_engine::uuid::Uuid;
 
     // pub fn extract_ip(req: &HttpRequest) -> Result<Uuid, String> {
-    //     
+    //
     // }
     // pub fn extract_user_agent(req: &HttpRequest) -> Result<String, String> {
-    //     
+    //
     // }
     pub fn extract_matrix_id(req: &HttpRequest) -> Result<Uuid, String> {
         let referrer = extract_referrer_url(req)?;

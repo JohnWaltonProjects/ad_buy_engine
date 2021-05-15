@@ -17,8 +17,8 @@ use yew::prelude::*;
 use yew::virtual_dom::{VList, VNode};
 
 use ad_buy_engine::constant::COLOR_GRAY;
-use yew_services::storage::Area;
-use yew_services::StorageService;
+use yew::services::storage::Area;
+use yew::services::StorageService;
 
 pub enum Msg {
     UpdateWeight((usize, usize, InputData)),

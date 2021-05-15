@@ -4,15 +4,12 @@ use crate::utils::database::PgPool;
 use crate::utils::errors::ApiError;
 use crate::utils::helpers::{respond_json, respond_ok};
 use actix_web::web::{block, Data, HttpResponse, Json, Path};
+use ad_buy_engine::chrono::Local;
 use ad_buy_engine::data::backend_models::invitation::Invitation;
-use ad_buy_engine::InvitationRequest;
-use chrono::Local;
-use diesel::prelude::*;
-use rayon::prelude::*;
-use serde::Serialize;
-use uuid::Uuid;
-use validator::Validate;
 use ad_buy_engine::data::backend_models::EmailModel;
+use ad_buy_engine::diesel::prelude::*;
+use ad_buy_engine::uuid::Uuid;
+use ad_buy_engine::InvitationRequest;
 
 pub async fn create(
     pool: Data<PgPool>,
@@ -32,7 +29,7 @@ pub async fn create(
         id: Uuid::new_v4().to_string(),
         email: _params,
         email_confirmed: false,
-        expires_at: Local::now().naive_local() + chrono::Duration::hours(24),
+        expires_at: Local::now().naive_local() + ad_buy_engine::chrono::Duration::hours(24),
     };
 
     block(move || crate::db::invitation_depricating::new(&pool, &new)).await?;
@@ -47,7 +44,7 @@ pub async fn update(_id: Path<Uuid>, pool: Data<PgPool>) -> Result<HttpResponse,
     let mut item = block(move || invitation_depricating::find(&pool, *_id)).await?;
     println!("1");
 
-    if item.expires_at > chrono::Local::now().naive_local() {
+    if item.expires_at > ad_buy_engine::chrono::Local::now().naive_local() {
         println!("1");
 
         item.email_confirmed = true;
@@ -67,5 +64,3 @@ pub async fn delete(_id: Path<Uuid>, pool: Data<PgPool>) -> Result<HttpResponse,
     block(move || crate::db::invitation_depricating::remove(&pool, &_id.to_string())).await?;
     respond_ok()
 }
-
-

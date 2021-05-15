@@ -2,6 +2,7 @@ use crate::appstate::app_state::AppState;
 use crate::components::account_tab_section::custom_conversions::modal::ModalType;
 use crate::components::tab_state::TabState;
 use crate::{notify_danger, notify_primary};
+use ad_buy_engine::chrono::{Local, NaiveDateTime, Utc};
 use ad_buy_engine::constant::browser_storage_keys::{
     ACCOUNT_KEY, CAMPAIGNS_KEY, FUNNELS_KEY, LANDING_PAGES_KEY, NEWEST_VISIT_DATE, OFFERS_KEY,
     OFFER_SOURCES, SYNC_HISTORY_KEY, TRAFFIC_SOURCES_KEY,
@@ -14,15 +15,15 @@ use ad_buy_engine::data::elements::offer::Offer;
 use ad_buy_engine::data::elements::offer_source::OfferSource;
 use ad_buy_engine::data::elements::traffic_source::TrafficSource;
 use ad_buy_engine::data::sync::SyncHistoryLedger;
+#[cfg(feature = "couch")]
 use ad_buy_engine::data::visit::Visit;
 use ad_buy_engine::AError;
-use chrono::{Local, NaiveDateTime, Utc};
 use std::cell::RefCell;
 use std::sync::atomic::Ordering::AcqRel;
 use std::sync::{Arc, RwLock};
 use yew::format::Json;
-use yew_services::storage::Area;
-use yew_services::StorageService;
+use yew::services::storage::Area;
+use yew::services::StorageService;
 
 impl AppState {
     pub fn init() -> Self {

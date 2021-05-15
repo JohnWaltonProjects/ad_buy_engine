@@ -7,16 +7,18 @@
 #![allow(deprecated)]
 #![allow(unused_must_use)]
 #![allow(non_camel_case_types)]
-#[macro_use]
-extern crate diesel;
+// #[macro_use]
+// extern crate diesel;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate redis_async;
 #[macro_use]
 extern crate serde_derive;
-#[macro_use]
-extern crate validator_derive;
+// #[macro_use]
+// extern crate validator_derive;
+// #[macro_use]
+// pub extern crate derive_more;
 #[macro_use]
 extern crate ad_buy_engine;
 
@@ -24,6 +26,7 @@ extern crate ad_buy_engine;
 pub mod macros;
 pub mod dns;
 pub use ad_buy_engine::schema;
+pub use ad_buy_engine::serde_json;
 
 use crate::server::server;
 

@@ -7,8 +7,8 @@ use ad_buy_engine::data::elements::crud::{
     CRUDElementResponse, CreatableElement, PrimeElementBuild,
 };
 use yew::format::Json;
-use yew_services::storage::Area;
-use yew_services::StorageService;
+use yew::services::storage::Area;
+use yew::services::StorageService;
 
 impl AppState {
     pub fn crud_update(&self, crud_response: CRUDElementResponse) {

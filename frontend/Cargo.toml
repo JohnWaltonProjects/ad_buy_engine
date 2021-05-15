@@ -5,34 +5,53 @@ authors = ["John W. <johnwalton@protonmail.com>"]
 edition = "2018"
 
 [dependencies]
-yew-services = { path = "../yew-services" }
+#yew-services = { path = "../yew-services" }
+
 ad_buy_engine = { version = "0.2.0", path = "../" }
 wasm-logger = "0.2.0"
 dotenv_codegen = "0.15.0"
 serde_derive = "1.0.116"
 serde = { version = "1.0.116", features = ["derive", "rc","alloc"] }
 wee_alloc = "0.4.5"
-rust_decimal = {version="1.10.2",features=["serde","serde_json"]}
+#rust_decimal = {version="1.10.2",features=["serde","serde_json"]}
 js-sys = "0.3.50"
-serde_json = {version="1.0.57",features=["preserve_order"]}
+#serde_json = {version="1.0.57",features=["preserve_order"]}
 url =  {version="2.1.1", features=["serde"]}
-wasm-bindgen = { version="^0.2",features = ["serde-serialize"] }
-wasm-bindgen-futures = "0.4.23"
-yew = { git = "https://github.com/yewstack/yew/", branch = "master" }
-yew-router = { git = "https://github.com/yewstack/yew/", branch = "master" }
+#wasm-bindgen = { version="^0.2",features = ["serde-serialize"] }
+#wasm-bindgen-futures = "0.4.24"
+
+#yew = { git = "https://github.com/yewstack/yew/", branch = "master" }
+#yewtil = {version = "0.3.2",features = ["future"]}
+#yew="0.17.4"
+#yewtil = "0.3.2"
+#yew-macro = "0.17.0"
+
+yew="0.17.4"
+yewtil = "0.3.2"
+yew-router = "0.14.0"
+
+wasm-bindgen = "0.2.74"
+wasm-bindgen-futures = "0.4.24"
+
+#yew = "0.17"
+#yewtil = "0.3"
+#wasm-bindgen = "0.2"
+#wasm-bindgen-futures = "0.4.21"
+#yew-router = { git = "https://github.com/yewstack/yew/", branch = "master" }
 
 uuid = { version = "0.7.0", features = [ "v4", "serde", "wasm-bindgen"] }
 fancy-regex = "0.5.0"
-chrono = {version="0.4.15",features=["serde", "wasm-bindgen", "wasmbind"]}
+#chrono = {version="0.4.15",features=["serde", "wasm-bindgen", "wasmbind"]}
 strum = "0.20.0"
 strum_macros = "0.20.1"
-yewtil = "0.3.2"
+
+#yewtil = {version = "0.3.2" ,features = ["future"] }
 anyhow = "1.0.32"
 either = {version="1.6.1",features=["serde"]}
 boyer-moore-magiclen = "0.2.10"
 thiserror = "1.0.23"
 
-pouch = "0.0.7-alpha"
+#pouch = "0.0.7-alpha"
 
 
 [dependencies.web-sys]

@@ -3,11 +3,11 @@ use crate::utils::errors::ApiError;
 use ad_buy_engine::data::backend_models::account::AccountModel;
 use ad_buy_engine::data::backend_models::funnel::FunnelModel;
 use ad_buy_engine::data::elements::funnel::Funnel;
-use diesel::insert_into;
-use diesel::prelude::*;
-use diesel::query_builder::IntoUpdateTarget;
-use diesel::update;
-use uuid::Uuid;
+use ad_buy_engine::diesel::insert_into;
+use ad_buy_engine::diesel::prelude::*;
+use ad_buy_engine::diesel::query_builder::IntoUpdateTarget;
+use ad_buy_engine::diesel::update;
+use ad_buy_engine::uuid::Uuid;
 
 pub fn create_funnel(pool: &PgPool, payload: FunnelModel) -> Result<FunnelModel, ApiError> {
     use crate::schema::funnels::dsl::funnels;
@@ -17,11 +17,9 @@ pub fn create_funnel(pool: &PgPool, payload: FunnelModel) -> Result<FunnelModel,
 }
 
 pub fn update_funnel(pool: &PgPool, payload: FunnelModel) -> Result<FunnelModel, ApiError> {
-    use crate::schema::funnels::dsl::{id as funnel_id, funnels};
+    use crate::schema::funnels::dsl::{funnels, id as funnel_id};
 
-    Ok(
-        update(funnels.filter(funnel_id.eq(payload.id.clone())))
-            .set(payload)
-            .get_result::<FunnelModel>(&pool.get()?)?,
-    )
+    Ok(update(funnels.filter(funnel_id.eq(payload.id.clone())))
+        .set(payload)
+        .get_result::<FunnelModel>(&pool.get()?)?)
 }

@@ -7,8 +7,8 @@ use crate::utils::routes::AppRoute;
 use ad_buy_engine::constant::browser_storage_keys::MAIN_TAB_RESTORE_KEY;
 use uuid::Uuid;
 use yew::format::Json;
-use yew_services::storage::Area;
-use yew_services::StorageService;
+use yew::services::storage::Area;
+use yew::services::StorageService;
 
 #[derive(Deserialize, Serialize, Clone, Default)]
 pub struct MainTabState {

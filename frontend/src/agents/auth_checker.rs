@@ -5,8 +5,8 @@ use std::time::Duration;
 use yew::agent::*;
 use yew::format::Nothing;
 use yew::prelude::*;
-use yew_services::fetch::{FetchTask, Response};
-use yew_services::{FetchService, IntervalService, Task};
+use yew::services::fetch::{FetchTask, Response};
+use yew::services::{FetchService, IntervalService, Task};
 
 pub enum Message {
     Ping,
@@ -56,7 +56,9 @@ impl Agent for AuthChecker {
             }
 
             Message::Ping => {
-                let request = yew_services::fetch::Request::get("").body(Nothing).unwrap();
+                let request = yew::services::fetch::Request::get("")
+                    .body(Nothing)
+                    .unwrap();
 
                 let callback = self
                     .agent_link

@@ -8,29 +8,37 @@
 #![allow(non_camel_case_types)]
 
 #[macro_use]
-extern crate ndarray;
+pub extern crate lazy_static;
 #[macro_use]
-extern crate lazy_static;
+pub extern crate serde_derive;
 #[macro_use]
-extern crate educe;
-#[macro_use]
-extern crate serde_derive;
-#[macro_use]
-extern crate strum_macros;
+pub extern crate strum_macros;
 #[cfg(feature = "backend")]
 #[macro_use]
-extern crate diesel;
+pub extern crate diesel;
 
 #[macro_use]
 pub mod macros;
 pub mod constant;
 pub mod data;
-
-pub mod string_manipulation;
-pub use maxminddb;
-pub use url::Url;
 #[cfg(feature = "backend")]
 pub mod schema;
+pub mod string_manipulation;
+
+pub use chrono;
+#[cfg(feature = "backend")]
+pub use couch_rs;
+pub use derive_more;
+pub use dotenv;
+pub use env_logger;
+pub use envy;
+pub use maxminddb;
+pub use serde;
+pub use serde_json;
+pub use time;
+#[cfg(feature = "backend")]
+pub use tokio;
+pub use url::Url;
 
 #[derive(Serialize, Deserialize, Copy, Clone, Debug)]
 pub enum Country {
@@ -51,12 +59,19 @@ pub type AError = anyhow::Error;
 pub type ISOLanguage = LanguageCode;
 
 pub use crate::data::iso_language::{LanguageCode, ParseError as ISOLangParseError};
+pub use either;
+pub use ipnet;
+pub use rand;
+pub use rust_decimal;
+pub use strum;
+pub use traversal;
+pub use uuid;
+pub use uuid::Uuid;
+pub use weighted_rs;
+
 use boyer_moore_magiclen::BMByte;
 use either::Either;
-pub use ipnet;
 use rand::Rng;
-pub use traversal;
-use uuid::Uuid;
 use weighted_rs::{SmoothWeight, Weight};
 
 pub fn generate_random_string(len: usize) -> String {

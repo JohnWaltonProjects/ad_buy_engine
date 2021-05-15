@@ -1,7 +1,9 @@
 use crate::utils::errors::ApiError;
+use actix_web::http::StatusCode;
 use actix_web::{
     body::Body,
     web::{HttpResponse, Json},
+    BaseHttpResponse,
 };
 use serde::Serialize;
 
@@ -14,12 +16,12 @@ where
 }
 
 /// Helper function to reduce boilerplate of an empty OK response
-pub fn respond_ok() -> Result<HttpResponse, ApiError> {
-    Ok(HttpResponse::Ok().body(Body::Empty))
+pub fn respond_ok() -> Result<HttpResponse<Body>, ApiError> {
+    Ok(HttpResponse::ok())
 }
 
-pub fn redirect_to(location: &str) -> HttpResponse {
-    HttpResponse::Found()
+pub fn redirect_to(location: &str) -> HttpResponse<Body> {
+    HttpResponse::new(StatusCode::FOUND)
         .header(actix_web::http::header::LOCATION, location)
         .finish()
 }

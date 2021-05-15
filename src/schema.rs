@@ -52,6 +52,7 @@ table! {
     click_identity (ua_ip_id) {
         ua_ip_id -> Varchar,
         visit_id -> Int8,
+        account_id -> Varchar,
         click_map -> Varchar,
     }
 }
@@ -111,8 +112,9 @@ table! {
 table! {
     linked_conversion (id) {
         id -> Varchar,
-        visit_id -> Int8,
+        visit_id -> Varchar,
         campaign_id -> Varchar,
+        account_id -> Varchar,
         offer_id -> Varchar,
         created_at -> Int8,
     }
@@ -199,32 +201,6 @@ table! {
     }
 }
 
-table! {
-    visit_ledger (id) {
-        id -> Int8,
-    }
-}
-
-table! {
-    visits (id) {
-        id -> Int8,
-        account_id -> Varchar,
-        campaign_id -> Varchar,
-        traffic_source_id -> Varchar,
-        funnel_id -> Varchar,
-        impressions_from_traffic_source -> Varchar,
-        clicks -> Varchar,
-        referrer -> Varchar,
-        parameters -> Varchar,
-        click_map -> Varchar,
-        user_agent_data -> Varchar,
-        geo_ip_data -> Varchar,
-        conversions -> Varchar,
-        custom_conversions -> Varchar,
-        last_updated -> Int8,
-    }
-}
-
 allow_tables_to_appear_in_same_query!(
     accounts,
     campaigns,
@@ -238,6 +214,4 @@ allow_tables_to_appear_in_same_query!(
     offers,
     traffic_sources,
     users,
-    visit_ledger,
-    visits,
 );

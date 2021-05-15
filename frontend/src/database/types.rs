@@ -1,10 +1,10 @@
-use serde::Deserialize;
-use serde_json::Value;
-use std::convert::TryFrom;
-use wasm_bindgen::JsValue;
-
-use super::errors::Error;
+#[cfg(feature = "couch")]
 use ad_buy_engine::data::visit::Visit;
+use ad_buy_engine::serde_json::Value;
+use serde::Deserialize;
+use std::convert::TryFrom;
+use uuid::Uuid;
+use wasm_bindgen::JsValue;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DatabaseInfo {
@@ -16,10 +16,10 @@ pub struct DatabaseInfo {
     pub adapter: String,
 }
 
-impl Default for DatabaseInfo {
-    fn default() -> Self {
+impl DatabaseInfo {
+    pub fn new(account_id: &Uuid) -> Self {
         DatabaseInfo {
-            db_name: String::from("unknown"),
+            db_name: account_id.to_string(),
             adapter: String::from("unknown"),
             idb_attachment_format: String::from("unknown"),
             doc_count: 0,
@@ -30,23 +30,24 @@ impl Default for DatabaseInfo {
 }
 
 impl TryFrom<JsValue> for DatabaseInfo {
-    type Error = super::errors::Error;
+    type Error = super::errors::FrontendError;
     fn try_from(value: JsValue) -> Result<Self, Self::Error> {
         let info: DatabaseInfo = value.into_serde().unwrap();
         Ok(info)
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Document {
-    pub _id: String,
-    pub _rev: String,
-    pub data: Visit,
-}
-use pouch;
-use serde_json::json;
-use serde_json::Number;
-use serde_json::Value as SerdeJsonValue;
+// #[derive(Serialize, Deserialize, Debug)]
+// pub struct Document {
+//     pub _id: String,
+//     pub _rev: String,
+//     pub data: Visit,
+// }
+
+// use pouch;
+// use serde_json::json;
+// use serde_json::Number;
+// use serde_json::Value as SerdeJsonValue;
 // impl From<Visit> for Document {
 //     fn from(v: Visit) -> Document {
 //         Self {
@@ -62,43 +63,41 @@ use serde_json::Value as SerdeJsonValue;
 //         d.data
 //     }
 // }
+//
+// impl TryFrom<Document> for JsValue {
+//     type Error = super::errors::FrontendError;
+//
+//     fn try_from(document: Document) -> Result<Self, Self::Error> {
+//         match JsValue::from_serde(&document) {
+//             Ok(result) => Ok(result),
+//             Err(error) => Err(error.into()),
+//         }
+//     }
+// }
+//
+// impl TryFrom<JsValue> for Document {
+//     type Error = super::errors::FrontendError  fn try_from(js_value: JsValue) -> Result<Self, Self::Error> {
+//         match js_value.into_serde() {
+//             Ok(result) => Ok(result),
+//             Err(error) => Err(error.into()),
+//         }
+//     }
+// }
 
-impl TryFrom<Document> for JsValue {
-    type Error = super::errors::FrontendError;
-
-    fn try_from(document: Document) -> Result<Self, Self::Error> {
-        match JsValue::from_serde(&document) {
-            Ok(result) => Ok(result),
-            Err(error) => Err(error.into()),
-        }
-    }
-}
-
-impl TryFrom<JsValue> for Document {
-    type Error = super::errors::Error;
-
-    fn try_from(js_value: JsValue) -> Result<Self, Self::Error> {
-        match js_value.into_serde() {
-            Ok(result) => Ok(result),
-            Err(error) => Err(error.into()),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct BulkResponse {
-    pub offset: String,
-    pub total_rows: String,
-    pub rows: Vec<ResponseRow>,
-}
-#[derive(Serialize, Deserialize)]
-pub struct ResponseRow {
-    pub doc: Visit,
-    pub id: String,
-    pub key: String,
-    pub value: ResponseValue,
-}
-#[derive(Serialize, Deserialize)]
-pub struct ResponseValue {
-    pub rev: String,
-}
+// #[derive(Serialize, Deserialize)]
+// pub struct BulkResponse {
+//     pub offset: String,
+//     pub total_rows: String,
+//     pub rows: Vec<ResponseRow>,
+// }
+// #[derive(Serialize, Deserialize)]
+// pub struct ResponseRow {
+//     pub doc: Visit,
+//     pub id: String,
+//     pub key: String,
+//     pub value: ResponseValue,
+// }
+// #[derive(Serialize, Deserialize)]
+// pub struct ResponseValue {
+//     pub rev: String,
+// }

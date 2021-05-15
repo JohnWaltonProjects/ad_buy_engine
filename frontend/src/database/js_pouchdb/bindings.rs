@@ -17,13 +17,16 @@ extern "C" {
     pub fn info(this: &PouchDB) -> Promise;
 
     #[wasm_bindgen(method, js_class = default)]
-    pub fn put(this: &PouchDB, doc: JsValue) -> Promise;
+    pub fn replicate(this: &PouchDB, src: String, target: String, options: JsValue) -> Promise;
 
-    #[wasm_bindgen(method, js_class = default)]
-    pub fn get(this: &PouchDB, docId: JsValue) -> Promise;
-
-    #[wasm_bindgen(method, js_class = default)]
-    pub fn get_all(this: &PouchDB) -> Promise;
+    // #[wasm_bindgen(method, js_class = default)]
+    // pub fn put(this: &PouchDB, doc: JsValue) -> Promise;
+    //
+    // #[wasm_bindgen(method, js_class = default)]
+    // pub fn get(this: &PouchDB, docId: JsValue) -> Promise;
+    //
+    // #[wasm_bindgen(method, js_class = default)]
+    // pub fn get_all(this: &PouchDB) -> Promise;
 
     // #[wasm_bindgen(method, js_class = default)]
     // pub fn get_newest_million(this: &PouchDB) -> Promise;
@@ -32,3 +35,4 @@ extern "C" {
     pub fn close(this: &PouchDB) -> Promise;
 
 }
+// pub async fn replicate(&self, src: Url, target: String) -> Result<(), FrontendError> {

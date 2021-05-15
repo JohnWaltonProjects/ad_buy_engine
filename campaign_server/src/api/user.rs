@@ -1,13 +1,10 @@
-use actix_web::client::Client;
-use actix_web::web::{block, Data, HttpResponse, Json, Path};
+use actix_web::web::{block, Data, HttpResponse, Json, Path, Query};
 use ad_buy_engine::data::account::Account;
 use ad_buy_engine::data::user::User;
+use ad_buy_engine::diesel::prelude::*;
+use ad_buy_engine::serde::Serialize;
+use ad_buy_engine::uuid::Uuid;
 use ad_buy_engine::{CreateUserRequest, UserResponse};
-use diesel::prelude::*;
-use rayon::prelude::*;
-use serde::Serialize;
-use uuid::Uuid;
-use validator::Validate;
 
 use crate::db;
 use crate::db::user_depricating::*;
@@ -22,15 +19,34 @@ use crate::utils::authentication::hash;
 use crate::utils::database::PgPool;
 use crate::utils::errors::ApiError;
 use crate::utils::helpers::{redirect_to, respond_json, respond_ok};
+use std::collections::HashMap;
 
-pub async fn get_user(uid: Path<Uuid>, pool: Data<PgPool>) -> Result<Json<UserResponse>, ApiError> {
-    let user = block(move || find(&pool, uid.clone())).await?;
-    respond_json(user)
+pub async fn test_create_couch_database(
+    couch_client: Data<ad_buy_engine::couch_rs::Client>,
+    query: Query<HashMap<String, String>>,
+) -> Result<HttpResponse, ApiError> {
+    // let thread = ad_buy_engine::tokio::spawn(async move {
+    //     let database = couch_client.db("a").await.unwrap();
+    //     ()
+    // });
+    //
+    // let res = thread.await;
+    // use ad_buy_engine::tokio::runtime::Handle;
+    // let handle = Handle::current();
+    // handle
+    //     .spawn(async move {
+    //         let make_database_result = couch_client.make_db("a").await;
+    //     })
+    //     .await
+    //     .expect("Task spawned in tiokio paniced");
+
+    // let x = query.get("a").cloned().unwrap();
+    // let account_id = query.into_inner().get("a").expect("G$%").clone();
+    respond_ok()
 }
 
 pub async fn create_user(
-    couch_client: Data<couch_rs::Client>,
-    client: Data<Client>,
+    couch_client: Data<ad_buy_engine::couch_rs::Client>,
     pool: Data<PgPool>,
     params: Json<CreateUserRequest>,
 ) -> Result<Json<UserResponse>, ApiError> {
@@ -63,7 +79,6 @@ pub async fn create_user(
             println!(
                 "Sub Domain created, {}",
                 request_subdomain(
-                    client,
                     new_account
                         .domains_configuration
                         .subdomain

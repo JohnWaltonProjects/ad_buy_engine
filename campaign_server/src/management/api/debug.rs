@@ -5,8 +5,8 @@ use crate::utils::helpers::respond_ok;
 use actix_web::web::{block, Data};
 use actix_web::HttpResponse;
 use ad_buy_engine::data::backend_models::EmailModel;
-use diesel::prelude::*;
-use diesel::RunQueryDsl;
+use ad_buy_engine::diesel::prelude::*;
+use ad_buy_engine::diesel::RunQueryDsl;
 
 pub async fn reset_users_accounts_emls(pool: Data<PgPool>) -> Result<HttpResponse, ApiError> {
     let local_pool = pool.clone();

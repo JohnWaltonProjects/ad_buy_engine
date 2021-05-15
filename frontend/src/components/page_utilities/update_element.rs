@@ -11,8 +11,8 @@ use std::rc::Rc;
 use web_sys::Element;
 use yew::format::Json;
 use yew::prelude::*;
-use yew_services::storage::Area;
-use yew_services::StorageService;
+use yew::services::storage::Area;
+use yew::services::StorageService;
 
 pub enum Msg {
     Click,

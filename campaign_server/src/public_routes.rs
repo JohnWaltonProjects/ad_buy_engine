@@ -6,12 +6,11 @@ use crate::api::{
     crud_element,
     health::get_health,
     invitation,
-    user::{create_user, get_user},
+    user::create_user,
 };
 use crate::management::api::debug;
 use crate::management::api::email::get_email_list;
 use crate::utils::middleware::auth::Auth as AuthMiddleware;
-use crate::utils::middleware::click_processor::ClickProcessor;
 use actix_files::Files;
 use actix_web::web::{get, post, resource, service, Data};
 use actix_web::{web, HttpResponse};

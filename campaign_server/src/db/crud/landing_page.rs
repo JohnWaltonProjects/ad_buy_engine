@@ -3,11 +3,11 @@ use crate::utils::errors::ApiError;
 use ad_buy_engine::data::backend_models::account::AccountModel;
 use ad_buy_engine::data::backend_models::landing_page::LandingPageModel;
 use ad_buy_engine::data::elements::landing_page::LandingPage;
-use diesel::insert_into;
-use diesel::prelude::*;
-use diesel::query_builder::IntoUpdateTarget;
-use diesel::update;
-use uuid::Uuid;
+use ad_buy_engine::diesel::insert_into;
+use ad_buy_engine::diesel::prelude::*;
+use ad_buy_engine::diesel::query_builder::IntoUpdateTarget;
+use ad_buy_engine::diesel::update;
+use ad_buy_engine::uuid::Uuid;
 
 pub fn create_landing_page(
     pool: &PgPool,
