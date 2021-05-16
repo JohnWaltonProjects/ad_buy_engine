@@ -4,14 +4,13 @@ use actix_web::{
     http::StatusCode,
     HttpResponse,
 };
+use ad_buy_engine::derive_more::Display;
 use ad_buy_engine::diesel::{
-    self,
     r2d2::PoolError,
     result::{DatabaseErrorKind, Error as DBError},
 };
 use ad_buy_engine::uuid::parser::ParseError;
 use awc::error::SendRequestError;
-use derive_more::Display;
 
 #[derive(Debug, Display, PartialEq)]
 #[allow(dead_code)]

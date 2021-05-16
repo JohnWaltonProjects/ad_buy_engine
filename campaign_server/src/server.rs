@@ -93,11 +93,10 @@ pub async fn server() -> std::io::Result<()> {
             // .wrap(RedirectSchemeBuilder::new().enable(true).build())
             // .configure(add_cache)
             .wrap(
-                Cors::new()
+                Cors::default()
                     .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT])
                     .allowed_header(header::CONTENT_TYPE)
-                    .max_age(3600)
-                    .finish(),
+                    .max_age(3600),
             )
             .wrap(Logger::default())
             .data(JsonConfig::default().limit(4_096_000))
@@ -107,10 +106,10 @@ pub async fn server() -> std::io::Result<()> {
             .data(cache.clone())
             .data(couch.clone())
             .app_data(app_state.clone())
-            .wrap_fn(|req, srv| {
-                println!("\n");
-                srv.call(req).map(|res| res)
-            })
+            // .wrap_fn(|req, srv| {
+            //     println!("\n");
+            //     srv.call(req).map(|res| res)
+            // })
             .service(resource("/couch").route(get().to(test_create_couch_database)))
             .service(resource("/extra/{num}").route(post().to(extra_multiple)))
             .service(resource("/extra").route(get().to(extra_single)))

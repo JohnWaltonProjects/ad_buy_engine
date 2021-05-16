@@ -4,6 +4,7 @@ use actix::prelude::*;
 use actix_redis::{Command, RedisActor};
 use actix_web::web::{Data, ServiceConfig};
 use redis_async::resp::{FromResp, RespValue};
+use redis_async::resp_array;
 
 pub type Cache = Data<Addr<RedisActor>>;
 
@@ -41,7 +42,7 @@ async fn send<'a>(redis: Cache, command: RespValue) -> Result<String, ApiError> 
 /// Add the redis actor to actix data_types if the URL is set
 pub fn add_cache(cfg: &mut ServiceConfig) {
     if let Ok(var) = std::env::var("REDIS_URL") {
-        println!("Redis URL: {}",&var);
+        println!("Redis URL: {}", &var);
         let cache = RedisActor::start(&var);
         cfg.data(cache);
     } else {

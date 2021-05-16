@@ -9,6 +9,7 @@ use ad_buy_engine::data::visit::click_map::ClickMap;
 use ad_buy_engine::data::visit::visit_identity::ClickIdentity;
 use ad_buy_engine::data::visit::Visit;
 use ad_buy_engine::Url;
+use redis_async::resp_array;
 use std::net::IpAddr;
 
 pub async fn store_initial_click(

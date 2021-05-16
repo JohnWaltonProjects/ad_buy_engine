@@ -3,6 +3,8 @@ use crate::utils::database::PgPool;
 use crate::utils::errors::ApiError;
 use actix::Addr;
 use actix_redis::{Command, RedisActor, RespValue};
+use redis_async::resp_array;
+
 use actix_web::web::{block, Data};
 use ad_buy_engine::data::backend_models::click_identity::ClickIdentityModal;
 use ad_buy_engine::data::visit::click_map::ClickMap;
