@@ -19,7 +19,7 @@ use ad_buy_engine::data::visit::conversion::Conversion;
 use ad_buy_engine::data::visit::geo_ip::GeoIPData;
 use ad_buy_engine::data::visit::user_agent::UserAgentData;
 use ad_buy_engine::data::visit::visit_identity::ClickIdentity;
-use ad_buy_engine::data::visit::{CouchedVisit, Visit};
+use ad_buy_engine::data::visit::Visit;
 use ad_buy_engine::uuid::Uuid;
 use ad_buy_engine::Url;
 use std::collections::HashMap;
@@ -32,7 +32,6 @@ pub async fn action(
     req: HttpRequest,
     pool: Data<PgPool>,
     params: Query<HashMap<String, String>>,
-    couch_rs: Data<ad_buy_engine::couch_rs::Client>,
 ) -> Result<HttpResponse, ApiError> {
     let sid = params.get("sid").cloned();
 
@@ -43,9 +42,20 @@ pub async fn action(
                 .await?;
 
         let visit_id = &restored_linked_conversion.visit_id;
-        let database_name = &restored_linked_conversion.account_id;
-        let database = couch_rs.db(database_name).await?;
-        let mut restored_visit = CouchedVisit::get(visit_id, &database).await?;
+        let lean_account_id = restored_linked_conversion
+            .account_id
+            .chars()
+            .filter(|s| *s != '-')
+            .collect::<String>();
+        let mut restored_visit: Visit = reqwest::Client::default()
+            .get(&format!(
+                "http://couch_app:9000/restore_visit?db_name={}&visit_id={}",
+                &lean_account_id, &visit_id
+            ))
+            .send()
+            .await?
+            .json::<Visit>()
+            .await?;
 
         let conversion = Conversion {
             postback_url_parameters: params.into_inner(),
@@ -54,7 +64,15 @@ pub async fn action(
         };
         restored_visit.conversions.push(conversion);
 
-        CouchedVisit::update(&mut restored_visit, &database).await?;
+        reqwest::Client::default()
+            .post(&format!(
+                "http://couch_app:9000/upsert_visit?db_name={}",
+                &lean_account_id
+            ))
+            .header("Content-Type", "application/json")
+            .json(&restored_visit)
+            .send()
+            .await?;
     }
 
     respond_ok()

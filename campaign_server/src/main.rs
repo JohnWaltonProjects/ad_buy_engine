@@ -1,4 +1,3 @@
-// #![feature(in_band_lifetimes)]
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 #![allow(unused_mut)]
@@ -7,16 +6,10 @@
 #![allow(deprecated)]
 #![allow(unused_must_use)]
 #![allow(non_camel_case_types)]
-// #[macro_use]
-// extern crate diesel;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate serde_derive;
-// #[macro_use]
-// extern crate validator_derive;
-// #[macro_use]
-// pub extern crate derive_more;
 #[macro_use]
 extern crate ad_buy_engine;
 

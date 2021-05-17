@@ -34,6 +34,7 @@ pub async fn process_initial_click(
 ) -> Result<HttpResponse, ApiError> {
     if let Some(found) = find_campaign(campaign_id.into_inner(), app_state, &pool) {
         let account_id = &found.account_id.to_string();
+        let lean_account_id = account_id.chars().filter(|s| *s != '-').collect::<String>();
         let ua = req.headers().get(USER_AGENT).unwrap().to_str().unwrap();
         let ip = req.peer_addr().unwrap().ip();
         let ip = IpAddr::from_str("172.58.38.197").unwrap();
@@ -63,6 +64,7 @@ pub async fn process_initial_click(
         );
 
         let (init_url, click_event) = click_map.get_initial_click()?;
+
         let visit = Visit::new(
             &found,
             geo_ip,
@@ -72,6 +74,7 @@ pub async fn process_initial_click(
             click_map.clone(),
             click_event,
         );
+
         let visit_id = &visit._id;
 
         if let MatrixData::Offer(offer) = &click_map.value.data {
@@ -98,7 +101,18 @@ pub async fn process_initial_click(
             ip,
             click_map,
         );
-        store_initial_click(redis.into_inner().as_ref(), pool, click_identity, visit).await?;
+
+        reqwest::Client::default()
+            .post(&format!(
+                "http://couch_app:9000/insert_visit?db_name={}",
+                &lean_account_id
+            ))
+            .header("Content-Type", "application/json")
+            .json(&visit)
+            .send()
+            .await?;
+
+        store_initial_click(redis.into_inner().as_ref(), pool, click_identity).await?;
 
         Ok(HttpResponse::Found()
             .header(LOCATION, init_url.as_str())

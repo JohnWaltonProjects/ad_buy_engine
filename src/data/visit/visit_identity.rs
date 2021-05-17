@@ -1,6 +1,6 @@
 use crate::data::backend_models::click_identity::ClickIdentityModal;
 use crate::data::visit::click_map::ClickMap;
-#[cfg(feature = "couch")]
+#[cfg(feature = "couch_app")]
 use crate::data::visit::Visit;
 use std::net::IpAddr;
 use uuid::Uuid;

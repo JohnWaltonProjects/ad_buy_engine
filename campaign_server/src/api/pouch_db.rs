@@ -11,15 +11,10 @@ pub async fn replicate(
     body: Bytes,
     id: Identity,
     database_name: Path<String>,
-    // couch_client:Data<couch_rs::Client>,
-    client: Data<awc::Client>,
+    client: Data<actix_web::client::Client>,
 ) -> Result<HttpResponse, ApiError> {
     let restored_identity: PrivateClaim =
         decode_jwt(&id.identity().expect("g3qw")).map_err(|e| e)?;
-    assert_eq!(
-        database_name.0.as_str(),
-        restored_identity.account_id.to_string().as_str()
-    );
 
     let forwarded_req = client
         .request_from(

@@ -1,4 +1,4 @@
-#[cfg(feature = "couch")]
+#[cfg(feature = "couch_app")]
 use ad_buy_engine::data::visit::Visit;
 use ad_buy_engine::serde_json::Value;
 use serde::Deserialize;

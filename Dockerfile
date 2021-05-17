@@ -16,16 +16,24 @@ RUN apt-get update -y && \
     apt install curl -y
 
 COPY migrations /app/migrations
+COPY bin/campaign_server /app/campaign_server
+
+#COPY bin/couch_app /app/couch_app
+#CMD ./couch_app
+#CMD ./campaign_server
+
+
 COPY static /app/static
 COPY GeoLite2-ASN.mmdb /app/GeoLite2-ASN.mmdb
 COPY GeoLite2-City.mmdb /app/GeoLite2-City.mmdb
-COPY ./bin/campaign_server /app
 COPY .env /app
 
 EXPOSE 80
 EXPOSE 443
+#EXPOSE 1488
 
 ENTRYPOINT [ "/app/campaign_server" ]
+
 
 #FROM rust:slim-buster AS base
 #

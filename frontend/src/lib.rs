@@ -50,7 +50,7 @@ use ad_buy_engine::constant::browser_storage_keys::{
 };
 use ad_buy_engine::data::account::Account;
 use ad_buy_engine::data::sync::SyncHistoryLedger;
-#[cfg(feature = "couch")]
+#[cfg(feature = "couch_app")]
 use ad_buy_engine::data::visit::Visit;
 use ad_buy_engine::data::visit::Visit;
 pub use ad_buy_engine::traversal;

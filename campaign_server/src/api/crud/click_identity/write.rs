@@ -16,7 +16,6 @@ pub async fn store_initial_click(
     redis: &Addr<RedisActor>,
     pool: Data<PgPool>,
     click_identity: ClickIdentity,
-    visit: Visit,
 ) -> Result<Url, ApiError> {
     let ci_modal = click_identity.clone().into();
     let res = create_click_identity(click_identity, redis).await?;

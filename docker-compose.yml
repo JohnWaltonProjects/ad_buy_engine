@@ -42,17 +42,28 @@ services:
     ports:
     - 6379:6379
 
+  couch_app:
+#    build:
+#      context: .
+#      dockerfile: ./couch_app/Dockerfile
+    image: couch_app:latest
+#    container_name: couch_app_container
+    ports:
+          - 9000:9000
+    restart: always
+    volumes:
+            - type: bind
+              source: ./bin/couch_app
+              target: /app/couch_app
+
   campaign_server:
     depends_on:
       - redis
       - campaign_db
-      - couch_database
+      - couch_app
     build: .
     environment:
       - HOST=0.0.0.0
-#      - PORT=8080
-#      - PORT_SECURE=443
-#      - REDIS_URL=redis:6379
       - REDIS_URL=redis:6379
       - POSTGRES_DB_HOST=campaign_db
       - POSTGRES_DB=${POSTGRES_DB}
@@ -61,16 +72,12 @@ services:
       - API_KEY=${API_KEY}
     ports:
       - 8081:80
-#      - ${PORT}:80
-#      - ${PORT_SECURE}:443
+#      - 9001:9000
     restart: always
     volumes:
 #      - type: bind
-#        source: /etc/letsencrypt/live/adbuyengine.com/fullchain.pem
-#        target: /app/fullchain.pem
-#      - type: bind
-#        source: /etc/letsencrypt/live/adbuyengine.com/privkey.pem
-#        target: /app/privkey.pem
+#        source: ./bin/couch_app
+#        target: /app/couch_app
       - type: bind
         source: ./static
         target: /app/static
@@ -95,8 +102,10 @@ services:
 
 volumes:
   pouchdb_visit_data:
-#    external:
-#      name: pouchdb_visit_data
   campaign_db_data:
     external:
       name: campaign_server_storage
+
+#networks:
+#  main-net:
+#    driver: bridge

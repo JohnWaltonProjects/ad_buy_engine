@@ -1,0 +1,25 @@
+FROM rust:slim-buster
+
+WORKDIR /app
+
+RUN apt-get update -y && \
+    apt-get -y upgrade && \
+    apt-get -y install libpq-dev && \
+    apt-get update -y && \
+    apt-get install -y libsqlite3-dev && \
+   apt-get update -y && \
+   apt install pkg-config -y && \
+   apt-get update -y && \
+    apt install libssl-dev && \
+    apt install curl -y
+
+#COPY migrations /app/migrations
+#COPY static /app/static
+#COPY GeoLite2-ASN.mmdb /app/GeoLite2-ASN.mmdb
+#COPY GeoLite2-City.mmdb /app/GeoLite2-City.mmdb
+COPY ./target/release/couch_app /app
+#COPY .env /app
+
+EXPOSE 9000
+
+ENTRYPOINT [ "/app/couch_app" ]

@@ -5,7 +5,7 @@ use super::js_pouchdb::bindings::PouchDB;
 use super::types::DatabaseInfo;
 use super::utils::log;
 use crate::database::errors::FrontendError;
-#[cfg(feature = "couch")]
+#[cfg(feature = "couch_app")]
 use ad_buy_engine::data::visit::Visit;
 use ad_buy_engine::serde_json::json;
 use std::collections::HashMap;

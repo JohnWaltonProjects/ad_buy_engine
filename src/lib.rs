@@ -26,9 +26,11 @@ pub mod schema;
 pub mod string_manipulation;
 
 pub use chrono;
-#[cfg(feature = "backend")]
+#[cfg(feature = "couch")]
 pub use couch_rs;
 pub use derive_more;
+#[cfg(feature = "backend")]
+pub mod backend_errors;
 pub use dotenv;
 pub use env_logger;
 pub use envy;
@@ -37,7 +39,6 @@ pub use serde;
 pub use serde_json;
 pub use time;
 #[cfg(feature = "backend")]
-pub use tokio;
 pub use url::Url;
 
 #[derive(Serialize, Deserialize, Copy, Clone, Debug)]

@@ -1,5 +1,5 @@
 local-dev-build-n-serve-campaign-server:
-	docker-compose down && make build-campaign-server && docker-compose up
+	docker-compose down && make build-campaign-server && make build-couch-app && docker-compose up
 
 local-dev-build-n-copy-frontend:
 	docker-compose down && make build-secure-frontend && docker-compose up -d && firefox -new-tab "127.0.0.1:8081/secure/"
@@ -55,6 +55,9 @@ rename-wasm-file:
 
 check-server:
 	cargo check -p campaign_server --features=backend,ua-parser
+
+build-couch-app:
+	cargo build -p couch_app --features=backend --release && cp target/release/couch_app bin/ && cp bin/couch_app couch_app/
 
 build-campaign-server:
 	cargo build -p campaign_server --features=backend,ua-parser --release && cp target/release/campaign_server bin/

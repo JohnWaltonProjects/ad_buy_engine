@@ -19,7 +19,7 @@ use ad_buy_engine::data::visit::click_event::{ClickEvent, ClickableElement, Ters
 use ad_buy_engine::data::visit::click_map::ClickMap;
 use ad_buy_engine::data::visit::user_agent::UserAgentData;
 use ad_buy_engine::data::visit::visit_identity::ClickIdentity;
-use ad_buy_engine::data::visit::{CouchedVisit, Visit};
+use ad_buy_engine::data::visit::Visit;
 use ad_buy_engine::traversal::Bft;
 use ad_buy_engine::Url;
 use ad_buy_engine::Uuid;
@@ -36,16 +36,24 @@ pub async fn extra_multiple(
     redis: Data<Addr<RedisActor>>,
     offer_group_idx: Path<usize>,
     params: Query<HashMap<String, String>>,
-    couch_client: Data<ad_buy_engine::couch_rs::Client>,
 ) -> Result<HttpResponse, ApiError> {
     let restored_click_identity = from_request_extract_identity(&req, &redis, &pool).await?;
     let restored_click_map = restored_click_identity.click_map.clone();
     let local_pool = pool.clone();
     let visit_id = restored_click_identity.visit_id.clone();
     let account_id = restored_click_identity.account_id.clone();
-    let couch_database = couch_client.db(&account_id).await?;
+    let lean_account_id = account_id.chars().filter(|s| *s != '-').collect::<String>();
 
-    let mut restored_visit: Visit = CouchedVisit::get(&visit_id, &couch_database).await?.into();
+    let mut restored_visit: Visit = reqwest::Client::default()
+        .get(&format!(
+            "http://couch_app:9000/restore_visit?db_name={}&visit_id={}",
+            &lean_account_id, &visit_id
+        ))
+        .send()
+        .await?
+        .json::<Visit>()
+        .await?;
+
     let campaign_id = restored_visit.campaign_id.clone();
 
     if let Some(sequence_type) = restored_click_identity.click_map.seq_type {
@@ -103,7 +111,15 @@ pub async fn extra_multiple(
                     _ => {}
                 }
 
-                CouchedVisit::update(&mut restored_visit.into(), &couch_database).await?;
+                reqwest::Client::default()
+                    .post(&format!(
+                        "http://couch_app:9000/upsert_visit?db_name={}",
+                        &lean_account_id,
+                    ))
+                    .header("Content-Type", "application/json")
+                    .json(&restored_visit)
+                    .send()
+                    .await?;
 
                 Ok(HttpResponse::Found().header(LOCATION, url).finish())
             }
@@ -122,7 +138,15 @@ pub async fn extra_multiple(
                         TerseElement::new(offer.offer_id, Some(offer.url.clone())),
                     )));
 
-                    CouchedVisit::update(&mut restored_visit.into(), &couch_database).await?;
+                    reqwest::Client::default()
+                        .post(&format!(
+                            "http://couch_app:9000/upsert_visit?db_name={}",
+                            &lean_account_id,
+                        ))
+                        .header("Content-Type", "application/json")
+                        .json(&restored_visit)
+                        .send()
+                        .await?;
 
                     let local_pool = pool.clone();
                     let campaign_id = campaign_id.to_string();

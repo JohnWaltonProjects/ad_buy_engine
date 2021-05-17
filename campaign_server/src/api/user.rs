@@ -21,32 +21,7 @@ use crate::utils::errors::ApiError;
 use crate::utils::helpers::{redirect_to, respond_json, respond_ok};
 use std::collections::HashMap;
 
-pub async fn test_create_couch_database(
-    couch_client: Data<ad_buy_engine::couch_rs::Client>,
-    query: Query<HashMap<String, String>>,
-) -> Result<HttpResponse, ApiError> {
-    // let thread = ad_buy_engine::tokio::spawn(async move {
-    //     let database = couch_client.db("a").await.unwrap();
-    //     ()
-    // });
-    //
-    // let res = thread.await;
-    // use ad_buy_engine::tokio::runtime::Handle;
-    // let handle = Handle::current();
-    // handle
-    //     .spawn(async move {
-    //         let make_database_result = couch_client.make_db("a").await;
-    //     })
-    //     .await
-    //     .expect("Task spawned in tiokio paniced");
-
-    // let x = query.get("a").cloned().unwrap();
-    // let account_id = query.into_inner().get("a").expect("G$%").clone();
-    respond_ok()
-}
-
 pub async fn create_user(
-    couch_client: Data<ad_buy_engine::couch_rs::Client>,
     pool: Data<PgPool>,
     params: Json<CreateUserRequest>,
 ) -> Result<Json<UserResponse>, ApiError> {
@@ -88,7 +63,7 @@ pub async fn create_user(
                 .await?
             );
 
-            create_couch_database(&new_account, couch_client).await?;
+            create_couch_database(new_account.to_string()).await?;
 
             let user = block(move || create(&pool, new_user.into(), new_account.into())).await?;
             block(move || db::invitation_depricating::remove(&pool_b, &inv.id)).await?;

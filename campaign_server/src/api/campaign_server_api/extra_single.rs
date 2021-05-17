@@ -9,7 +9,6 @@ use actix_redis::{Command, RedisActor, RespValue};
 use actix_web::http::header::{LOCATION, REFERER, USER_AGENT};
 use actix_web::web::{block, Data, Path, Query};
 use actix_web::{HttpRequest, HttpResponse};
-use ad_buy_engine::couch_rs::Client;
 use ad_buy_engine::data::backend_models::linked_conversion::LinkedConversion;
 use ad_buy_engine::data::elements::campaign::Campaign;
 use ad_buy_engine::data::elements::funnel::SequenceType;
@@ -19,7 +18,7 @@ use ad_buy_engine::data::visit::click_map::ClickMap;
 use ad_buy_engine::data::visit::geo_ip::GeoIPData;
 use ad_buy_engine::data::visit::user_agent::UserAgentData;
 use ad_buy_engine::data::visit::visit_identity::ClickIdentity;
-use ad_buy_engine::data::visit::{CouchedVisit, Visit};
+use ad_buy_engine::data::visit::Visit;
 use ad_buy_engine::traversal::Bft;
 use ad_buy_engine::Url;
 use ad_buy_engine::Uuid;
@@ -34,15 +33,23 @@ pub async fn extra_single(
     pool: Data<PgPool>,
     app_state: Data<Mutex<HashMap<Uuid, Campaign>>>,
     redis: Data<Addr<RedisActor>>,
-    couch: Data<Client>,
 ) -> Result<HttpResponse, ApiError> {
     let restored_click_identity = from_request_extract_identity(&req, &redis, &pool).await?;
     let restored_click_map = restored_click_identity.click_map.clone();
     let visit_id = restored_click_identity.visit_id.clone();
     let account_id = restored_click_identity.account_id.clone();
+    let lean_account_id = account_id.chars().filter(|s| *s != '-').collect::<String>();
 
-    let database = couch.db(&account_id).await?;
-    let mut restored_visit: Visit = CouchedVisit::get(&visit_id, &database).await?.into();
+    let mut restored_visit: Visit = reqwest::Client::default()
+        .get(&format!(
+            "http://couch_app:9000/restore_visit?db_name={}&visit_id={}",
+            &lean_account_id, &visit_id
+        ))
+        .send()
+        .await?
+        .json::<Visit>()
+        .await?;
+
     let campaign_id = restored_visit.campaign_id.clone();
 
     if let Some(sequence_type) = restored_click_identity.click_map.seq_type {
@@ -96,7 +103,15 @@ pub async fn extra_single(
                     _ => {}
                 }
 
-                CouchedVisit::update(&mut restored_visit.into(), &database).await?;
+                reqwest::Client::default()
+                    .post(&format!(
+                        "http://couch_app:9000/upsert_visit?db_name={}",
+                        &lean_account_id,
+                    ))
+                    .header("Content-Type", "application/json")
+                    .json(&restored_visit)
+                    .send()
+                    .await?;
 
                 Ok(HttpResponse::Found().header(LOCATION, url).finish())
             }
@@ -111,11 +126,20 @@ pub async fn extra_single(
 
                 if let MatrixData::Offer(offer) = offer_click_map.value.data {
                     let redirect_url = offer.url.clone();
+
                     restored_visit.push_click_event(ClickEvent::create(ClickableElement::Offer(
                         TerseElement::new(offer.offer_id, Some(offer.url.clone())),
                     )));
 
-                    CouchedVisit::update(&mut restored_visit.into(), &database).await?;
+                    reqwest::Client::default()
+                        .post(&format!(
+                            "http://couch_app:9000/upsert_visit?db_name={}",
+                            &lean_account_id
+                        ))
+                        .header("Content-Type", "application/json")
+                        .json(&restored_visit)
+                        .send()
+                        .await?;
 
                     let local_pool = pool.clone();
                     let account_id = account_id.clone();

@@ -15,7 +15,7 @@ use ad_buy_engine::data::elements::offer::Offer;
 use ad_buy_engine::data::elements::offer_source::OfferSource;
 use ad_buy_engine::data::elements::traffic_source::TrafficSource;
 use ad_buy_engine::data::sync::SyncHistoryLedger;
-#[cfg(feature = "couch")]
+#[cfg(feature = "couch_app")]
 use ad_buy_engine::data::visit::Visit;
 use ad_buy_engine::AError;
 use std::cell::RefCell;

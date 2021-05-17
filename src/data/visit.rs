@@ -18,15 +18,15 @@ use crate::data::visit::click_map::ClickMap;
 use crate::data::visit::conversion::Conversion;
 use crate::AError;
 use chrono::{DateTime, NaiveDateTime, Utc};
-#[cfg(feature = "backend")]
+#[cfg(feature = "couch")]
 use couch_rs::document::TypedCouchDocument;
-#[cfg(feature = "backend")]
+#[cfg(feature = "couch")]
 use couch_rs::error::CouchResult;
-#[cfg(feature = "backend")]
+#[cfg(feature = "couch")]
 use couch_rs::types::document::DocumentCreatedResult;
-#[cfg(feature = "backend")]
+#[cfg(feature = "couch")]
 use couch_rs::CouchDocument;
-#[cfg(feature = "backend")]
+#[cfg(feature = "couch")]
 use couch_rs::{database::Database, Client};
 
 use either::Either;
@@ -40,28 +40,40 @@ pub mod geo_ip;
 pub mod user_agent;
 pub mod visit_identity;
 
-#[cfg(feature = "backend")]
+#[cfg(feature = "couch")]
 #[derive(Serialize, Deserialize, Clone, Debug, CouchDocument)]
 pub struct CouchedVisit {
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub _id: String,
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub _rev: String,
+    #[serde(rename = "accountId")]
     pub account_id: Uuid,
+    #[serde(rename = "campaignId")]
     pub campaign_id: Uuid,
+    #[serde(rename = "trafficSourceId")]
     pub traffic_source_id: Uuid,
+    #[serde(rename = "funnelId")]
     pub funnel_id: Option<Uuid>,
+    #[serde(rename = "impressionsFromTrafficSource")]
     pub impressions_from_traffic_source: u64,
     pub clicks: Vec<ClickEvent>,
     pub referrer: Option<Url>,
     pub parameters: HashMap<String, String>,
+    #[serde(rename = "clickMap")]
     pub click_map: ClickMap,
+    #[serde(rename = "userAgentData")]
     pub user_agent_data: UserAgentData,
+    #[serde(rename = "geoIpData")]
     pub geo_ip_data: GeoIPData,
     pub conversions: Vec<Conversion>,
+    #[serde(rename = "customConversions")]
     pub custom_conversions: Vec<CustomConversionEvent>,
+    #[serde(rename = "lastUpdated")]
     pub last_updated: DateTime<Utc>,
 }
 
-#[cfg(feature = "backend")]
+#[cfg(feature = "couch")]
 impl From<Visit> for CouchedVisit {
     fn from(visit: Visit) -> Self {
         Self {
@@ -85,7 +97,7 @@ impl From<Visit> for CouchedVisit {
     }
 }
 
-#[cfg(feature = "backend")]
+#[cfg(feature = "couch")]
 impl From<CouchedVisit> for Visit {
     fn from(visit: CouchedVisit) -> Self {
         Self {
@@ -170,9 +182,9 @@ impl Visit {
     }
 }
 
-#[cfg(feature = "backend")]
+#[cfg(feature = "couch")]
 impl CouchedVisit {
-    pub async fn save(doc: &mut Self, database: &Database) -> DocumentCreatedResult {
+    pub async fn insert(doc: &mut Self, database: &Database) -> DocumentCreatedResult {
         database.save(doc).await
     }
 
@@ -180,7 +192,7 @@ impl CouchedVisit {
         database.get::<Self>(id).await
     }
 
-    pub async fn update(doc: &mut Self, database: &Database) -> DocumentCreatedResult {
+    pub async fn upsert(doc: &mut Self, database: &Database) -> DocumentCreatedResult {
         database.upsert(doc).await
     }
 }

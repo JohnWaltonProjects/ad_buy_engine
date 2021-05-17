@@ -10,7 +10,7 @@ use crate::data::lists::time_zone::TimeZone;
 use crate::data::lists::{Currency, Language};
 use crate::data::user::{SlimUser, User};
 use crate::data::work_space::{AdditionalUser, WorkSpace};
-use crate::AError;
+use crate::{generate_random_string, AError};
 use chrono::{DateTime, Local, NaiveDateTime, Utc};
 use std::str::FromStr;
 use url::Url;

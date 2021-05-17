@@ -1,37 +1,86 @@
 use crate::utils::errors::ApiError;
-use actix_web::web::Data;
-use ad_buy_engine::couch_rs::document::DocumentCollection;
-use ad_buy_engine::couch_rs::types::find::FindQuery;
-use ad_buy_engine::data::account::Account;
-use ad_buy_engine::serde_json::Value;
-use std::error::Error;
+use actix_web::HttpResponse;
+use ad_buy_engine::data::visit::Visit;
+use ad_buy_engine::Uuid;
+use reqwest::{Response, Url};
 
-// pub async fn fetch_from_couch_database(
-//     target:i64,
-//     account: &Account,
-//     couch_client: Data<couch_rs::Client>,
-// ) -> Result<(), ApiError> {
-// let database=couch_client.db(account.account_id.to_string().as_str());
-//     let find=FindQuery::new()
-//     Ok(())
-// }
+pub async fn create_couch_database(db_name: String) -> Result<(), ApiError> {
+    let url = format!("http://couch_app:9000/make_db?db_name={}", db_name);
+    let url = Url::parse(&url)
+        .map_err(|e| ApiError::InternalServerError(format!("parse err: {:?}", e)))?;
 
-pub async fn create_couch_database(
-    account: &Account,
-    couch_client: Data<ad_buy_engine::couch_rs::Client>,
-) -> Result<(), ApiError> {
-    let make_db_result = couch_client
-        .make_db(account.account_id.to_string().as_str())
-        .await?;
+    reqwest::Client::default()
+        .get(url)
+        .send()
+        .await
+        .map_err(|e| ApiError::InternalServerError(format!("make db err: {:?}", e)))?;
     Ok(())
 }
 
-pub async fn destroy_couch_database(
-    account: &Account,
-    couch_client: Data<ad_buy_engine::couch_rs::Client>,
-) -> Result<(), ApiError> {
-    let make_db_result = couch_client
-        .destroy_db(account.account_id.to_string().as_str())
-        .await?;
-    Ok(())
+pub async fn restore_visit(db_name: String, visit_id: String) -> Result<Visit, ApiError> {
+    let url = format!(
+        "http://couch_app:9000/restore_visit?db_name={}&visit_id={}",
+        db_name, visit_id
+    );
+    let url = Url::parse(&url)
+        .map_err(|e| ApiError::InternalServerError(format!("parse err: {:?}", e)))?;
+
+    match reqwest::Client::default()
+        .get(url)
+        .send()
+        .await
+        .map_err(|e| ApiError::InternalServerError(format!("make db err: {:?}", e)))?
+        .json::<Visit>()
+        .await
+    {
+        Ok(result) => Ok(result),
+        Err(err) => {
+            println!("Error:{:?}", &err);
+            Err(ApiError::InternalServerError(format!(
+                "json parse err \n\n\n"
+            )))
+        }
+    }
+}
+
+pub async fn insert_visit(db_name: String, visit: Visit) -> Result<(), ApiError> {
+    let url = format!("http://couch_app:9000/insert_visit?db_name={}", db_name,);
+    let url = Url::parse(&url)
+        .map_err(|e| ApiError::InternalServerError(format!("parse err: {:?}", e)))?;
+
+    if let Ok(res) = reqwest::Client::default()
+        .post(url)
+        .header("Content-Type", "application/json")
+        .json(&visit)
+        .send()
+        .await
+        .map_err(|e| ApiError::InternalServerError(format!("make db err: {:?}", e)))
+    {
+        if res.status().is_success() {
+            Ok(())
+        } else {
+            Err(ApiError::ClientSendRequestError(format!("Err :G^XXXXXX4")))
+        }
+    } else {
+        Err(ApiError::ClientSendRequestError(format!("Err :G^$T44")))
+    }
+}
+
+pub async fn upsert(db_name: String, visit: Visit) -> Result<(), ApiError> {
+    let url = format!("http://couch_app:9000/upsert_visit?db_name={}", db_name,);
+    let url = Url::parse(&url)
+        .map_err(|e| ApiError::InternalServerError(format!("parse err: {:?}", e)))?;
+
+    if let Ok(res) = reqwest::Client::default()
+        .post(url)
+        .header("Content-Type", "application/json")
+        .json(&visit)
+        .send()
+        .await
+        .map_err(|e| ApiError::InternalServerError(format!("make db err: {:?}", e)))
+    {
+        Ok(())
+    } else {
+        Err(ApiError::ClientSendRequestError(format!("Err :G^$T44")))
+    }
 }
