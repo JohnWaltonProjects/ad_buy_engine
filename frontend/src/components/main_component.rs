@@ -6,6 +6,7 @@ use crate::components::account_component::AccountComponent;
 use crate::components::account_tab_section::custom_conversions::modal::ModalType;
 use crate::components::app_bar::AppBar;
 // use crate::components::database_component::DatabaseComponent;
+use crate::components::database_component::DatabaseComponent;
 use crate::components::page_controller::PageController;
 use crate::components::page_utilities::crud_element::crud_campaign::CRUDCampaign;
 use crate::components::page_utilities::crud_element::crud_funnels::CRUDFunnel;
@@ -75,7 +76,7 @@ impl Component for MainComponent {
 
                             {self.render_crud_modal()}
                         </div>
-                // <DatabaseComponent state=rc!(self.props.state) />
+                <DatabaseComponent state=rc!(self.props.state) />
                 </>
             }
         }

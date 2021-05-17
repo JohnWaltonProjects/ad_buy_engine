@@ -12,6 +12,10 @@ use std::collections::HashMap;
 use url::Url;
 use wasm_bindgen::JsValue;
 
+pub fn version() -> &'static str {
+    env!("CARGO_PKG_VERSION")
+}
+
 pub struct Database {
     js_db: PouchDB,
 }

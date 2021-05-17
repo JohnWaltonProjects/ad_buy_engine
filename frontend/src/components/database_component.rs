@@ -78,7 +78,7 @@ impl Component for DatabaseComponent {
     fn view(&self) -> Html {
         html! {
         <div>
-                    <p><b>{ format!("{} (v{})", "Yew & Pouch", pouch::version()) }</b></p>
+                    <p><b>{ format!("{} (v{})", "Yew & Pouch", crate::database::version()) }</b></p>
                     <button onclick=self.link.callback(|_| Msg::FetchDatabaseInfo)>{ "Get Database Info" }</button>
                     <p><i>{ format!("{:?}", self.db_info) }</i></p>
         </div>
