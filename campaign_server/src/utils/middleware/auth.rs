@@ -60,7 +60,7 @@ where
             return Box::pin(async move {
                 Ok(req.into_response(
                     HttpResponse::Found()
-                        .header(actix_web::http::header::LOCATION, LOGIN_REDIRECT)
+                        .header(actix_web::http::header::LOCATION, "/tertiary")
                         .finish()
                         .into_body(),
                 ))

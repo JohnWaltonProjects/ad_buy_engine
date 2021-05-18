@@ -1,4 +1,38 @@
-// This file is included in `bindings.rs`
+
+//export function databaseInfo(name) {
+//db.info().then(function (result) {
+//}).catch(function (err) {
+//  console.log(err);
+//});
+//}
+
+export function createPouchDatabase(name) {
+//var db = new PouchDB('http://localhost:5984/'+name, {
+//  fetch: function (url, opts) {
+//    opts.headers.set('X-Auth-CouchDB-UserName', 'foo');
+//    opts.headers.set('X-Some-Special-Header', 'foo');
+//    opts.headers.set('X-Some-Special-Header', 'foo');
+//    return PouchDB.fetch(url, opts);
+//  }
+//});
+//var db = new PouchDB('http://couched_visits:uX2b6@q5CxOjT7NrxYDc@localhost:5984/'+name);
+//db.info()
+var PouchDB = require('pouchdb-browser');
+var db = new PouchDB('http://localhost:5984/' + name + '?name=couched_visits&password=uX2b6@q5CxOjT7NrxYDc', {skip_setup: true});
+//var local = new PouchDB(name);
+//local.sync(db, {live: true, retry: true}).on('error', console.log.bind(console));
+}
+
+export function replicateDatabase(name) {
+var localDB = new PouchDB(name);
+var remoteDB = new PouchDB('http://127.0.0.1:5984/' + name);
+localDB.replicate.from(remoteDB,  { live: true, retry:true}).on('complete', function () {
+  // yay, we're done!
+}).on('error', function (err) {
+  // boo, something went wrong!
+});
+
+}
 
 export function getPayload() {
   return new Date().toString();
@@ -21,10 +55,6 @@ export function uikitNotify(msg, status) {
 
 export function replaceLocationLogin() {
     window.location.replace("/tertiary#login");
-}
-
-export function createDB() {
-    var db = new PouchDB('visit_data');
 }
 
 export function toggle_uk_dropdown(element) {

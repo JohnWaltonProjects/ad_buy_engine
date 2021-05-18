@@ -1,26 +1,6 @@
 version: '3.7'
 
 services:
-
-  couch_database:
-    image: couchdb:latest
-    container_name: couch_storage
-    restart: always
-    volumes:
-      - type: volume
-        source: pouchdb_visit_data
-        target: /home/ad_buy_engine/couch/data
-        volume:
-          nocopy: true
-      - type: bind
-        source: /home/ad_buy_engine/couch/data
-        target: /opt/couchdb/data
-    ports:
-      - 5984:5984
-    environment:
-      - COUCHDB_USER=${COUCHDB_USER}
-      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
-
   campaign_db:
     image: postgres:13.2-alpine
     container_name: campaign_server_storage
@@ -43,11 +23,7 @@ services:
     - 6379:6379
 
   couch_app:
-#    build:
-#      context: .
-#      dockerfile: ./couch_app/Dockerfile
     image: couch_app:latest
-#    container_name: couch_app_container
     ports:
           - 9000:9000
     restart: always
@@ -72,12 +48,8 @@ services:
       - API_KEY=${API_KEY}
     ports:
       - 8081:80
-#      - 9001:9000
     restart: always
     volumes:
-#      - type: bind
-#        source: ./bin/couch_app
-#        target: /app/couch_app
       - type: bind
         source: ./static
         target: /app/static
@@ -101,11 +73,6 @@ services:
         target: /app/regexes.yaml
 
 volumes:
-  pouchdb_visit_data:
   campaign_db_data:
     external:
       name: campaign_server_storage
-
-#networks:
-#  main-net:
-#    driver: bridge

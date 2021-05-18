@@ -2,7 +2,7 @@
 #![doc(html_logo_url = "https://www.pouch.rs/assets/images/logo.svg")]
 
 pub mod database;
-pub use super::database::Database;
+// pub use super::database::Database;
 
 pub mod types;
 
@@ -17,7 +17,6 @@ pub fn version() -> &'static str {
 }
 
 pub mod prelude {
-    pub use super::database::Database;
     pub use super::types::DatabaseInfo;
 }
 

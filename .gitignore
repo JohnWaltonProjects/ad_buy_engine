@@ -22,4 +22,4 @@ abe.js
 abe.wasm
 snippets
 TABNINE
-pouchdb-7.2.1.min.js
+static/main/public/assets/js/pouchdb-7.2.1.min.js

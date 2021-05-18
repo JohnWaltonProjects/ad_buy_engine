@@ -91,7 +91,7 @@ pub async fn server() -> std::io::Result<()> {
             .configure(private_routes)
             .service(
                 scope("").default_service(
-                    Files::new("", DIRECTORY_LOCATION_MAIN_PUBLIC_STATIC)
+                    Files::new("", "./static/main/public")
                         .index_file("index.html")
                         .use_last_modified(true),
                 ),

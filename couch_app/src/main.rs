@@ -13,7 +13,7 @@ async fn main() -> std::io::Result<()> {
     println!("STARTED\n\n\n");
 
     let couch = ad_buy_engine::couch_rs::Client::new(
-        "http://couch_database:5984",
+        "http://localhost:5984",
         "couched_visits",
         "uX2b6@q5CxOjT7NrxYDc",
     )

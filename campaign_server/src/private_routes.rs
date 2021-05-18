@@ -39,10 +39,10 @@ pub fn private_routes(cfg: &mut web::ServiceConfig) {
             .service(resource("/account").route(post().to(update_account)))
             .service(resource("/sync_elements").route(post().to(sync_elements::sync))),
     )
-    .service(resource("/visits/{db_name}").route(web::route().to(replicate)))
+    .service(resource("/visits/{db_name}/").route(web::route().to(replicate)))
     .service(
         web::scope("/secure").wrap(AuthMiddleware).service(
-            Files::new("", DIRECTORY_LOCATION_MAIN_SECURE_STATIC)
+            Files::new("", "./static/main/secure")
                 .index_file("index.html")
                 .use_last_modified(true),
         ),

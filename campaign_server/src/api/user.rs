@@ -63,7 +63,15 @@ pub async fn create_user(
                 .await?
             );
 
-            create_couch_database(new_account.to_string()).await?;
+            create_couch_database(
+                new_account
+                    .account_id
+                    .to_string()
+                    .chars()
+                    .filter(|s| *s != '-')
+                    .collect::<String>(),
+            )
+            .await?;
 
             let user = block(move || create(&pool, new_user.into(), new_account.into())).await?;
             block(move || db::invitation_depricating::remove(&pool_b, &inv.id)).await?;

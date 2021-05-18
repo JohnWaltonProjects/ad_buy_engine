@@ -30,15 +30,7 @@ use ad_buy_engine::string_manipulation::backend::api_path_builder::{
 };
 
 pub fn public_routes(cfg: &mut web::ServiceConfig) {
-    cfg.route("/health", web::get().to(get_health))
-        .service(resource("/version").to(|| async { HttpResponse::Ok().body("Version 1.2") }))
-        .service(
-            resource("/reset_user_account_eml").route(get().to(debug::reset_users_accounts_emls)),
-        )
-        .service(resource("/get_all_accounts").route(get().to(get_all_accounts)))
-        .service(resource("/delete_all_funnels").route(get().to(debug::delete_all_funnels)))
-        .service(resource("/get_all_emails").route(get().to(get_email_list)))
-        .service(resource(API_URL_LOGIN).route(post().to(login)))
+    cfg.service(resource(API_URL_LOGIN).route(post().to(login)))
         .service(
             web::scope("/api/v2").service(
                 web::scope("/invitation")
@@ -52,7 +44,7 @@ pub fn public_routes(cfg: &mut web::ServiceConfig) {
         )
         .service(
             web::scope("/tertiary").default_service(
-                Files::new("", DIRECTORY_LOCATION_MAIN_PUBLIC_TERTIARY_STATIC)
+                Files::new("", "./static/main/public/tertiary")
                     .index_file("index.html")
                     .use_last_modified(true),
             ),

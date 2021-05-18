@@ -17,9 +17,9 @@ pub struct DatabaseInfo {
 }
 
 impl DatabaseInfo {
-    pub fn new(account_id: &Uuid) -> Self {
+    pub fn new(slim_account_id: String) -> Self {
         DatabaseInfo {
-            db_name: account_id.to_string(),
+            db_name: slim_account_id,
             adapter: String::from("unknown"),
             idb_attachment_format: String::from("unknown"),
             doc_count: 0,

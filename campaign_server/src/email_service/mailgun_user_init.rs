@@ -15,7 +15,7 @@ use std::error::Error;
 //     let message = Message {
 //         to: vec![recipient],
 //         subject: String::from("YOU ARE INVITED - RESPONSE REQUIRED"),
-//         html: format!(
+//         static: format!(
 //             "Please click on the link below to complete your registration. <br/>
 //          <a href=\"{}/{}/{}/{}\">
 //          Verify Email</a>

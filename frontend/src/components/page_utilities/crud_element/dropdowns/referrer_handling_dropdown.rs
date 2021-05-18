@@ -132,16 +132,16 @@ impl Component for ReferrerHandlingDropdown {
         //
         // if let Some(rh) = self.props.selected.clone() {
         //     let rh_clone = rh.clone();
-        //     options.push(html!{<option onclick=self.link.callback(move |_| Msg::Select(rh.clone())) >{rh_clone.to_string()}</option>});
+        //     options.push(static!{<option onclick=self.link.callback(move |_| Msg::Select(rh.clone())) >{rh_clone.to_string()}</option>});
         //
         //     for referrer_handling_option in ReferrerHandling::iter().filter(|s| s != &rh_clone) {
         //         let referrer_handling_option_clone = referrer_handling_option.clone();
-        //         options.push(html! {<option onclick=self.link.callback(move |_| Msg::Select(referrer_handling_option_clone.clone())) >{referrer_handling_option.to_string()}</option>})
+        //         options.push(static! {<option onclick=self.link.callback(move |_| Msg::Select(referrer_handling_option_clone.clone())) >{referrer_handling_option.to_string()}</option>})
         //     }
         // } else {
         //     for referrer_handling_option in ReferrerHandling::iter() {
         //         let referrer_handling_option_clone = referrer_handling_option.clone();
-        //         options.push(html! {<option onclick=self.link.callback(move |_| Msg::Select(referrer_handling_option_clone.clone())) >{referrer_handling_option.to_string()}</option>})
+        //         options.push(static! {<option onclick=self.link.callback(move |_| Msg::Select(referrer_handling_option_clone.clone())) >{referrer_handling_option.to_string()}</option>})
         //     }
         // }
 

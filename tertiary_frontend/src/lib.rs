@@ -119,7 +119,7 @@ impl Component for RootComponent {
     fn view(&self) -> VNode {
         if let Some(cc) = &self.child_component {
             match cc {
-                // AppRoute::Home => VNode::from(html! {
+                // AppRoute::Home => VNode::from(static! {
                 // <>
                 //     <PublicHeader :/>
                 //         <div>
@@ -191,7 +191,7 @@ impl Component for RootComponent {
                     </div>
             </div>
             })
-            // html! { "No child master_campaign_element available" }
+            // static! { "No child master_campaign_element available" }
         }
     }
 }

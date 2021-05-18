@@ -60,7 +60,7 @@ impl Component for SequenceTypeDropdown {
         let init = self.props.selected.clone();
         let init_str = init.to_string();
 
-        // options.push(html!{<option onclick=self.link.callback(move |_| Msg::Select(init)) >{init_str}</option>});
+        // options.push(static!{<option onclick=self.link.callback(move |_| Msg::Select(init)) >{init_str}</option>});
 
         for item in SequenceType::iter() {
             options.push(html!{<option onclick=self.link.callback(move |_| Msg::Select(item.clone())) >{item.to_string()}</option>});

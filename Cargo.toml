@@ -5,13 +5,11 @@ authors = ["johnwaltonvi <johnwalton@protonmail.com>"]
 edition = "2018"
 
 [features]
-backend = ["diesel", "actix-web"]
+backend = ["diesel"]
 ua-parser = ["user-agent-parser"]
 couch  = ["couch_rs"]
 
 [dependencies]
-tokio = { version = "0.2.6", features = [], optional = true}
-actix-web = {version="3.0.2",features = ["openssl"], optional = true}
 
 anyhow = "1.0.32"
 ipnet = {version="2.3.0",features=["serde"]}

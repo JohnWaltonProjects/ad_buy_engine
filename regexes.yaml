@@ -118,7 +118,7 @@ user_agent_parsers:
     family_replacement: 'GmailImageProxy'
 
   # Yahoo
-  - regex: 'YahooMailProxy; https://help\.yahoo\.com/kb/yahoo-mail-proxy-SLN28749\.html'
+  - regex: 'YahooMailProxy; https://help\.yahoo\.com/kb/yahoo-mail-proxy-SLN28749\.static'
     family_replacement: 'YahooMailProxy'
 
   # Twitter
@@ -141,7 +141,7 @@ user_agent_parsers:
   - regex: '(Google-HTTP-Java-Client|Apache-HttpClient|Go-http-client|scalaj-http|http%20client|Python-urllib|HttpMonitor|TLSProber|WinHTTP|JNLP|okhttp|aihttp|reqwest|axios|unirest-(?:java|python|ruby|nodejs|php|net))(?:[ /](\d+)(?:\.(\d+)|)(?:\.(\d+)|)|)'
 
   # Pinterestbot
-  - regex: '(Pinterest(?:bot|))/(\d+)(?:\.(\d+)|)(?:\.(\d+)|)[;\s(]+\+https://www.pinterest.com/bot.html'
+  - regex: '(Pinterest(?:bot|))/(\d+)(?:\.(\d+)|)(?:\.(\d+)|)[;\s(]+\+https://www.pinterest.com/bot.static'
     family_replacement: 'Pinterestbot'
 
   # Bots
@@ -1723,12 +1723,12 @@ device_parsers:
   # Mobile Spiders
   # Catch the mobile crawler before checking for iPhones / Androids.
   #########
-  - regex: '^.{0,100}?(?:(?:iPhone|Windows CE|Windows Phone|Android).{0,300}(?:(?:Bot|Yeti)-Mobile|YRSpider|BingPreview|bots?/\d|(?:bot|spider)\.html)|AdsBot-Google-Mobile.{0,200}iPhone)'
+  - regex: '^.{0,100}?(?:(?:iPhone|Windows CE|Windows Phone|Android).{0,300}(?:(?:Bot|Yeti)-Mobile|YRSpider|BingPreview|bots?/\d|(?:bot|spider)\.static)|AdsBot-Google-Mobile.{0,200}iPhone)'
     regex_flag: 'i'
     device_replacement: 'Spider'
     brand_replacement: 'Spider'
     model_replacement: 'Smartphone'
-  - regex: '^.{0,100}?(?:DoCoMo|\bMOT\b|\bLG\b|Nokia|Samsung|SonyEricsson).{0,200}(?:(?:Bot|Yeti)-Mobile|bots?/\d|(?:bot|crawler)\.html|(?:jump|google|Wukong)bot|ichiro/mobile|/spider|YahooSeeker)'
+  - regex: '^.{0,100}?(?:DoCoMo|\bMOT\b|\bLG\b|Nokia|Samsung|SonyEricsson).{0,200}(?:(?:Bot|Yeti)-Mobile|bots?/\d|(?:bot|crawler)\.static|(?:jump|google|Wukong)bot|ichiro/mobile|/spider|YahooSeeker)'
     regex_flag: 'i'
     device_replacement: 'Spider'
     brand_replacement: 'Spider'

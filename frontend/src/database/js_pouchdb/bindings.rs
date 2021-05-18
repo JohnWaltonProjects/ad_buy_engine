@@ -1,38 +1,27 @@
 use js_sys::Promise;
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen(module = "pouchdb")]
+#[wasm_bindgen(module = "/src/utils/javascript/js-scripts.js")]
 extern "C" {
 
-    #[wasm_bindgen(js_name = default)]
-    pub type PouchDB;
+    #[wasm_bindgen(js_name = "createPouchDatabase")]
+    pub fn create_pouch_database(name: String);
 
-    #[wasm_bindgen(constructor, js_class = default)]
-    pub fn new(name: String) -> PouchDB;
-
-    #[wasm_bindgen(method, js_class = default)]
-    pub fn destroy(this: &PouchDB) -> Promise;
-
-    #[wasm_bindgen(method, js_class = default)]
-    pub fn info(this: &PouchDB) -> Promise;
-
-    #[wasm_bindgen(method, js_class = default)]
-    pub fn replicate(this: &PouchDB, src: String, target: String, options: JsValue) -> Promise;
-
-    // #[wasm_bindgen(method, js_class = default)]
-    // pub fn put(this: &PouchDB, doc: JsValue) -> Promise;
-    //
-    // #[wasm_bindgen(method, js_class = default)]
-    // pub fn get(this: &PouchDB, docId: JsValue) -> Promise;
-    //
-    // #[wasm_bindgen(method, js_class = default)]
-    // pub fn get_all(this: &PouchDB) -> Promise;
-
-    // #[wasm_bindgen(method, js_class = default)]
-    // pub fn get_newest_million(this: &PouchDB) -> Promise;
-
-    #[wasm_bindgen(method, js_class = default)]
-    pub fn close(this: &PouchDB) -> Promise;
+    #[wasm_bindgen(js_name = "replicateDatabase")]
+    pub fn replicate(database_name: String);
 
 }
-// pub async fn replicate(&self, src: Url, target: String) -> Result<(), FrontendError> {
+
+// #[wasm_bindgen(module = "../static/main/public/assets/js/pouchdb-7.2.1.min.js")]
+// extern "C" {
+//
+//     #[wasm_bindgen(js_name = default)]
+//     pub type PouchDB;
+//
+//     #[wasm_bindgen(constructor, js_class=default)]
+//     pub fn new(name: String) -> PouchDB;
+//
+//     #[wasm_bindgen(method, js_class = default)]
+//     pub fn info(this: &PouchDB) -> Promise;
+//
+// }

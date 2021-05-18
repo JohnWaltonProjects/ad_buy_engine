@@ -1,24 +1,27 @@
+use crate::serde_json::Value;
 use crate::utils::authentication::{decode_jwt, PrivateClaim};
 use crate::utils::database::PgPool;
 use crate::utils::errors::ApiError;
 use crate::utils::helpers::respond_json;
 use actix_identity::Identity;
 use actix_web::web::{Bytes, Data, Json, Path};
-use actix_web::{HttpRequest, HttpResponse};
+use actix_web::{HttpMessage, HttpRequest, HttpResponse};
 
 pub async fn replicate(
     req: HttpRequest,
     body: Bytes,
+    // payload: Json<Value>,
     id: Identity,
     database_name: Path<String>,
-    client: Data<actix_web::client::Client>,
 ) -> Result<HttpResponse, ApiError> {
-    let restored_identity: PrivateClaim =
-        decode_jwt(&id.identity().expect("g3qw")).map_err(|e| e)?;
-
+    let client = actix_web::client::Client::new();
     let forwarded_req = client
         .request_from(
-            format!("couch_database:5984/{}", database_name.into_inner()).as_str(),
+            format!(
+                "localhost:5984/{}_replicate?name=couched_visits&password=uX2b6@q5CxOjT7NrxYDc",
+                database_name.into_inner()
+            )
+            .as_str(),
             req.head(),
         )
         .no_decompress();
