@@ -9,6 +9,10 @@ edition = "2018"
 actix-web = "4.0.0-beta.6"
 ad_buy_engine = { version = "0.2.0", path = "../" , features = ["couch"]}
 #actix = "0.10"
+serde = { version = "1.0.116", features = ["derive", "rc","alloc"] }
+serde_derive = "1.0.116"
+lazy_static = "1.4.0"
+tokio = {version="1.6.0",features=["macros"]}
 #actix-files = "0.3"
 #actix-web-actors = "3"
 #awc = "2"

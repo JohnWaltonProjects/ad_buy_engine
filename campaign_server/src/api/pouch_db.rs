@@ -18,7 +18,7 @@ pub async fn replicate(
     let forwarded_req = client
         .request_from(
             format!(
-                "localhost:5984/{}_replicate?name=couched_visits&password=uX2b6@q5CxOjT7NrxYDc",
+                "0.0.0.0:5984/{}_replicate?name=admin&password=uX2b6@q5CxOjT7NrxYDc",
                 database_name.into_inner()
             )
             .as_str(),

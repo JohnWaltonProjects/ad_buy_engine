@@ -1,3 +1,7 @@
+#[macro_use]
+extern crate serde_derive;
+#[macro_use]
+extern crate lazy_static;
 use actix_web::web::{get, post, resource, Data, Json, Query};
 use actix_web::{middleware, web, HttpResponse};
 use actix_web::{App, HttpServer};
@@ -6,18 +10,25 @@ use ad_buy_engine::couch_rs::types::document::DocumentCreatedDetails;
 use ad_buy_engine::data::visit::{CouchedVisit, Visit};
 use std::collections::HashMap;
 
+pub mod couch_admin;
+pub mod couch_user;
+pub mod error;
+pub mod test;
+pub mod typed_couch_docs;
+
 pub type CouchClient = couch_rs::Client;
+lazy_static! {
+    static ref COUCH_CLIENT: ad_buy_engine::couch_rs::Client = {
+        ad_buy_engine::couch_rs::Client::new("http://0.0.0.0:5984", "admin", "uX2b6@q5CxOjT7NrxYDc")
+            .expect("%GFDGSDHFG")
+    };
+}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     println!("STARTED\n\n\n");
 
-    let couch = ad_buy_engine::couch_rs::Client::new(
-        "http://localhost:5984",
-        "couched_visits",
-        "uX2b6@q5CxOjT7NrxYDc",
-    )
-    .expect("%GFDGSDHFG");
+    let couch = COUCH_CLIENT.clone();
 
     HttpServer::new(move || {
         App::new()
@@ -35,7 +46,6 @@ async fn main() -> std::io::Result<()> {
 }
 
 pub async fn get_health() -> HttpResponse {
-    println!("from couch_app responding to campaign_server request");
     HttpResponse::Ok().body("Healthy")
 }
 
@@ -130,9 +140,15 @@ pub async fn make_db(
     couch_client: Data<CouchClient>,
 ) -> HttpResponse {
     let db_name = q.get("db_name").cloned().expect("db_name iddfs");
+    let username = q.get("username").cloned().expect("username:G$%");
+    // need pw too?
+
     match couch_client.make_db(&db_name).await {
         Ok(ers) => {
             println!("db created");
+            // Make Username
+            // If User fails, delete database
+            // add user's authentication.
         }
         Err(err) => {
             println!("failed db create");
@@ -140,4 +156,27 @@ pub async fn make_db(
         }
     }
     HttpResponse::Ok().finish()
+}
+
+use couch_rs::CouchDocument;
+
+// #[derive(Serialize, Deserialize, CouchDocument)]
+// pub struct CouchUser {
+//     pub _id: String,
+//     pub name: String,
+//     #[serde(rename = "type")]
+//     pub _type: String,
+//     pub roles: Vec<String>,
+//     pub password: String,
+// }
+// {
+// "_id": "org.couchdb.user:dbreader",
+// "name": "dbreader",
+// "type": "user",
+// "roles": [],
+// "password": "plaintext_password"
+// }
+
+pub async fn create_user_read_only() -> HttpResponse {
+    HttpResponse::Ok().body("Healthy")
 }
