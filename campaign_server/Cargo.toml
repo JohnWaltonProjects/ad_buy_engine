@@ -31,9 +31,11 @@ time = "0.2.19"
 serde = { version = "1.0.116", features = ["derive", "rc","alloc"] }
 serde_derive = "1.0.116"
 derive_more = "0.99.13"
+actix-rt = "1.1.1"
 
-#[dev-dependencies]
-#actix-http-test = "2.0.0"
+[dev-dependencies]
+actix-http-test = "2.0.0"
+
 
 [features]
 cockroach = []

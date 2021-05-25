@@ -1,7 +1,9 @@
 use crate::appstate::app_state::STATE;
 use crate::database::errors::FrontendError;
 use crate::database::js_pouchdb::bindings::create_pouch_database;
+use crate::database::utils::log;
 use crate::database::DatabaseInfo;
+use ad_buy_engine::serde_json::Value;
 use uuid::Uuid;
 use wasm_bindgen::prelude::*;
 use yew::prelude::*;
@@ -75,6 +77,15 @@ impl Component for DatabaseComponent {
             }
 
             Msg::SyncDatabase => {
+                log("db create");
+                let res = create_pouch_database(self.db_info.db_name.clone());
+
+                if let Ok(ok) = res.into_serde::<Value>() {
+                    log(&format!("ok int oserde: {:?}", ok));
+                } else {
+                    log("err: ..")
+                }
+
                 // create_pouch_database(self.db_info.db_name.clone());
                 // let database_name = self.db_info.db_name.clone();
                 // let future = async {
@@ -88,7 +99,7 @@ impl Component for DatabaseComponent {
             }
 
             Msg::FetchDatabaseInfo => {
-                create_pouch_database(self.db_info.db_name.clone());
+                // let res = database_info();
                 // let database_name = self.db_info.db_name.clone();
                 // let future = async {
                 //     match fetch_db_info(database_name).await {

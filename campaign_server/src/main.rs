@@ -31,6 +31,7 @@ mod private_routes;
 mod public_routes;
 mod server;
 pub mod test_routes;
+pub mod tests;
 pub mod utils;
 
 #[actix_web::main]

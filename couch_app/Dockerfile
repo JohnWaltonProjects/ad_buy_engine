@@ -10,7 +10,8 @@ RUN apt-get update -y && \
    apt-get update -y && \
    apt install pkg-config -y && \
    apt-get update -y && \
-    apt install libssl-dev && \
+    apt install libssl-dev -y && \
+    apt install iproute2 -y && \
     apt install curl -y
 
 #COPY migrations /app/migrations

@@ -19,8 +19,35 @@ impl CouchUser {
         }
     }
 }
-//
-// "name": &format!("\"{}\"",&username),
-// "password": &format!("\"{}\"", password),
-// "roles": [],
-// "type": "user"
+
+#[derive(Serialize, Deserialize, Default, Debug)]
+pub struct CouchSecurity {
+    pub admins: DatabaseAdmins,
+    pub members: DatabaseMembers,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug)]
+pub struct DatabaseAdmins {
+    pub names: Vec<String>,
+    pub roles: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug)]
+pub struct DatabaseMembers {
+    pub names: Vec<String>,
+    pub roles: Vec<String>,
+}
+
+impl CouchSecurity {
+    pub fn for_user(username: String) -> Self {
+        let mut members = DatabaseMembers::default();
+        members.names.push(username);
+
+        let res = Self {
+            admins: DatabaseAdmins::default(),
+            members,
+        };
+        dbg!(&res);
+        res
+    }
+}

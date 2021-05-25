@@ -6,6 +6,10 @@
 //});
 //}
 
+//export function dbInfo() {
+//    db.info()
+//}
+
 export function createPouchDatabase(name) {
 //var db = new PouchDB('http://localhost:5984/'+name, {
 //  fetch: function (url, opts) {
@@ -17,8 +21,14 @@ export function createPouchDatabase(name) {
 //});
 //var db = new PouchDB('http://couched_visits:uX2b6@q5CxOjT7NrxYDc@localhost:5984/'+name);
 //db.info()
-var PouchDB = require('pouchdb-browser');
-var db = new PouchDB('http://localhost:5984/' + name + '?name=couched_visits&password=uX2b6@q5CxOjT7NrxYDc', {skip_setup: true});
+//var PouchDB = require('pouchdb-browser');
+var db = new PouchDB(name);
+db.info().then(function (info) {
+  console.log(info);
+  info
+})
+
+//var db = new PouchDB('http://localhost:5984/' + name + '?name=couched_visits&password=uX2b6@q5CxOjT7NrxYDc', {skip_setup: true});
 //var local = new PouchDB(name);
 //local.sync(db, {live: true, retry: true}).on('error', console.log.bind(console));
 }

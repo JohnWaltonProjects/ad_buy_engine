@@ -15,6 +15,9 @@ pub async fn replicate(
     database_name: Path<String>,
 ) -> Result<HttpResponse, ApiError> {
     let client = actix_web::client::Client::new();
+
+    // add basic authentication headers
+
     let forwarded_req = client
         .request_from(
             format!(

@@ -3,7 +3,7 @@
 
 **/target
 .idea
-**/Cargo.lock
+#**/Cargo.lock
 **/main_server/static/private_server/static/pkg/.gitignore
 dist
 node_modules

@@ -63,15 +63,9 @@ pub async fn create_user(
                 .await?
             );
 
-            create_couch_database(
-                new_account
-                    .account_id
-                    .to_string()
-                    .chars()
-                    .filter(|s| *s != '-')
-                    .collect::<String>(),
-            )
-            .await?;
+            let user_details = CouchUserDetails::create(new_account.account_id.to_string());
+
+            let username = create_couch_database(user_details).await?;
 
             let user = block(move || create(&pool, new_user.into(), new_account.into())).await?;
             block(move || db::invitation_depricating::remove(&pool_b, &inv.id)).await?;
@@ -88,13 +82,24 @@ pub async fn create_user(
     }
 }
 
-// pub async fn delete_all_users(
-//     pool: Data<PgPool>,
-// ) -> Result<HttpResponse, ApiError> {
-//     use crate::schema::users::dsl::users;
-//     use crate::schema::emails::dsl::emails;
-//     let conn= pool.get()?;
-//     block(move || crate::diesel::delete(users).execute(&conn)).await?;
-//     block(move || crate::diesel::delete(emails).execute(&conn)).await?;
-//     respond_ok()
-// }
+pub struct CouchUserDetails {
+    pub username: String,
+    pub password: String,
+    pub database_name: String,
+}
+
+impl CouchUserDetails {
+    pub fn create(_account_id: String) -> CouchUserDetails {
+        let slim_account_id = _account_id
+            .chars()
+            .filter(|s| *s != '-')
+            .collect::<String>();
+        let password_hash = hash(&slim_account_id);
+
+        Self {
+            username: slim_account_id.clone(),
+            password: password_hash,
+            database_name: slim_account_id,
+        }
+    }
+}

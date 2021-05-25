@@ -120,3 +120,20 @@ pub struct RegisterAnother {
     pub username: String,
     pub password: String,
 }
+
+pub fn parse_username_from_email(email: &str) -> String {
+    let mut list = vec![];
+
+    for i in email.chars() {
+        if i == '@' {
+            break;
+        }
+        list.push(i)
+    }
+
+    list.iter().collect()
+}
+
+pub fn trim_uuid(id: String) -> String {
+    id.chars().filter(|s| *s != '-').collect::<String>()
+}

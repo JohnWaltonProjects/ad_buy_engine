@@ -1,19 +1,25 @@
+use crate::api::user::CouchUserDetails;
 use crate::utils::errors::ApiError;
 use actix_web::HttpResponse;
 use ad_buy_engine::data::visit::Visit;
 use ad_buy_engine::Uuid;
 use reqwest::{Response, Url};
 
-pub async fn create_couch_database(db_name: String) -> Result<(), ApiError> {
-    let url = format!("http://couch_app:9000/make_db?db_name={}", db_name);
-    let url = Url::parse(&url)
-        .map_err(|e| ApiError::InternalServerError(format!("parse err: {:?}", e)))?;
+pub const COUCH_APP_URI: &'static str = "http://couch_app:9000/";
 
-    reqwest::Client::default()
-        .get(url)
+pub async fn create_couch_database(user_details: CouchUserDetails) -> Result<(), ApiError> {
+    let url = format!(
+        "{}new_user?username={}&password={}&database_name={}",
+        COUCH_APP_URI, user_details.username, user_details.password, user_details.database_name,
+    );
+    dbg!(&url);
+
+    dbg!(reqwest::Client::default()
+        .get(&url)
         .send()
         .await
-        .map_err(|e| ApiError::InternalServerError(format!("make db err: {:?}", e)))?;
+        .map_err(|e| ApiError::InternalServerError(format!("make db err: {:?}", e)))?);
+
     Ok(())
 }
 

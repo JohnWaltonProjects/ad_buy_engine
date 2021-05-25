@@ -27,6 +27,8 @@ services:
     ports:
           - 9000:9000
     restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
             - type: bind
               source: ./bin/couch_app
@@ -49,6 +51,8 @@ services:
     ports:
       - 8081:80
     restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - type: bind
         source: ./static

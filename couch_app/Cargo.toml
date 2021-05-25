@@ -13,6 +13,9 @@ serde = { version = "1.0.116", features = ["derive", "rc","alloc"] }
 serde_derive = "1.0.116"
 lazy_static = "1.4.0"
 tokio = {version="1.6.0",features=["macros"]}
+reqwest = "0.11.3"
+#reqwest = { version = "0.10.10", features = ["json"] }
 #actix-files = "0.3"
 #actix-web-actors = "3"
 #awc = "2"
+awc = "3.0.0-beta.5"

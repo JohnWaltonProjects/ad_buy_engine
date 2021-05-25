@@ -2,24 +2,30 @@
 extern crate serde_derive;
 #[macro_use]
 extern crate lazy_static;
-use actix_web::web::{get, post, resource, Data, Json, Query};
+use crate::apis::new_user;
+use crate::couch_admin::{
+    add_security_document_to_database, couchdb_create_user_database, create_database, create_user,
+};
+use actix_web::web::{block, get, post, resource, Data, Json, Query};
 use actix_web::{middleware, web, HttpResponse};
 use actix_web::{App, HttpServer};
 use ad_buy_engine::couch_rs;
 use ad_buy_engine::couch_rs::types::document::DocumentCreatedDetails;
 use ad_buy_engine::data::visit::{CouchedVisit, Visit};
+use reqwest::{Method, Url};
 use std::collections::HashMap;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
+pub mod apis;
 pub mod couch_admin;
-pub mod couch_user;
-pub mod error;
 pub mod test;
 pub mod typed_couch_docs;
 
 pub type CouchClient = couch_rs::Client;
+pub const COUCH_SERVER_URI: &'static str = "http://host.docker.internal:5984";
 lazy_static! {
-    static ref COUCH_CLIENT: ad_buy_engine::couch_rs::Client = {
-        ad_buy_engine::couch_rs::Client::new("http://0.0.0.0:5984", "admin", "uX2b6@q5CxOjT7NrxYDc")
+    pub static ref COUCH_CLIENT: ad_buy_engine::couch_rs::Client = {
+        ad_buy_engine::couch_rs::Client::new(COUCH_SERVER_URI, "admin", "uX2b6@q5CxOjT7NrxYDc")
             .expect("%GFDGSDHFG")
     };
 }
@@ -34,10 +40,12 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .data(couch.clone())
             .wrap(middleware::Logger::default())
-            .service(resource("/make_db").route(get().to(make_db)))
-            .service(resource("/insert_visit").route(post().to(insert_visit)))
-            .service(resource("/upsert_visit").route(post().to(upsert_visit)))
-            .service(resource("/restore_visit").route(get().to(restored_visit)))
+            .service(resource("/new_user").route(get().to(new_user)))
+            .service(resource("/test").route(get().to(test_ping)))
+            // .service(resource("/health").route(get().to(get_health)))
+            // .service(resource("/insert_visit").route(post().to(insert_visit)))
+            // .service(resource("/upsert_visit").route(post().to(upsert_visit)))
+            // .service(resource("/restore_visit").route(get().to(restored_visit)))
             .default_service(web::route().to(get_health))
     })
     .bind("couch_app:9000")?
@@ -49,134 +57,14 @@ pub async fn get_health() -> HttpResponse {
     HttpResponse::Ok().body("Healthy")
 }
 
-pub async fn upsert_visit(
-    q: Query<HashMap<String, String>>,
-    couch_client: Data<CouchClient>,
-    payload: Json<Visit>,
-) -> HttpResponse {
-    let db_name = q.get("db_name").cloned().expect("db_name iddfs");
-    let mut visit = CouchedVisit::from(payload.into_inner());
+pub async fn test_ping() -> HttpResponse {
+    println!("Pinging couchdb on host os");
 
-    match couch_client.db(&db_name).await {
-        Ok(database) => match CouchedVisit::upsert(&mut visit, &database).await {
-            Ok(res) => {
-                return HttpResponse::Ok().finish();
-            }
+    dbg!(reqwest::Client::default()
+        .get("http://host.docker.internal:5984")
+        .send()
+        .await
+        .unwrap());
 
-            Err(err) => {
-                println!("Error 23: {:?}", err)
-            }
-        },
-
-        Err(err) => {
-            println!("failed to open db, not found?");
-            println!("{}", err.message);
-        }
-    }
-    HttpResponse::InternalServerError().finish()
-}
-
-pub async fn insert_visit(
-    q: Query<HashMap<String, String>>,
-    couch_client: Data<CouchClient>,
-    payload: Json<Visit>,
-) -> HttpResponse {
-    println!("XXX");
-    let db_name = q.get("db_name").cloned().expect("db_name iddfs");
-    let mut visit = CouchedVisit::from(payload.into_inner());
-    println!("XXX");
-    match couch_client.db(&db_name).await {
-        Ok(database) => {
-            println!("345453");
-            match CouchedVisit::insert(&mut visit, &database).await {
-                Ok(res) => {
-                    println!("doc created: {:?}", &res);
-                    return HttpResponse::Ok().finish();
-                }
-
-                Err(err) => {
-                    println!("Error 23: {:?}", err)
-                }
-            }
-        }
-
-        Err(err) => {
-            println!("failed to open db, not found?");
-            println!("{}", err.message);
-        }
-    }
-    HttpResponse::InternalServerError().finish()
-}
-
-pub async fn restored_visit(
-    q: Query<HashMap<String, String>>,
-    couch_client: Data<CouchClient>,
-) -> HttpResponse {
-    let db_name = q.get("db_name").cloned().expect("db_name iddfs");
-    let visit_id = q.get("visit_id").cloned().expect("visit_id g645");
-    match couch_client.db(&db_name).await {
-        Ok(database) => match CouchedVisit::get(&visit_id, &database).await {
-            Ok(res) => {
-                let payload: Visit = res.into();
-
-                return HttpResponse::Ok().json(&payload);
-            }
-
-            Err(err) => {
-                println!("Error 23: {:?}", err)
-            }
-        },
-
-        Err(err) => {
-            println!("failed to open db, not found?");
-            println!("{}", err.message);
-        }
-    }
-    HttpResponse::InternalServerError().finish()
-}
-
-pub async fn make_db(
-    q: Query<HashMap<String, String>>,
-    couch_client: Data<CouchClient>,
-) -> HttpResponse {
-    let db_name = q.get("db_name").cloned().expect("db_name iddfs");
-    let username = q.get("username").cloned().expect("username:G$%");
-    // need pw too?
-
-    match couch_client.make_db(&db_name).await {
-        Ok(ers) => {
-            println!("db created");
-            // Make Username
-            // If User fails, delete database
-            // add user's authentication.
-        }
-        Err(err) => {
-            println!("failed db create");
-            println!("{}", err.message);
-        }
-    }
-    HttpResponse::Ok().finish()
-}
-
-use couch_rs::CouchDocument;
-
-// #[derive(Serialize, Deserialize, CouchDocument)]
-// pub struct CouchUser {
-//     pub _id: String,
-//     pub name: String,
-//     #[serde(rename = "type")]
-//     pub _type: String,
-//     pub roles: Vec<String>,
-//     pub password: String,
-// }
-// {
-// "_id": "org.couchdb.user:dbreader",
-// "name": "dbreader",
-// "type": "user",
-// "roles": [],
-// "password": "plaintext_password"
-// }
-
-pub async fn create_user_read_only() -> HttpResponse {
     HttpResponse::Ok().body("Healthy")
 }

@@ -1,17 +1,17 @@
-use crate::typed_couch_docs::CouchUser;
-use crate::CouchClient;
+use crate::typed_couch_docs::{CouchSecurity, CouchUser};
 use crate::COUCH_CLIENT;
+use crate::{CouchClient, COUCH_SERVER_URI};
 use actix_web::http::Method;
 use ad_buy_engine::couch_rs::database::Database;
 use ad_buy_engine::serde_json::{json, Value};
 use tokio::time::Duration;
 
 pub async fn create_database(
-    client: CouchClient,
+    couch_admin_client: CouchClient,
     name: &str,
 ) -> Result<(CouchClient, Database), String> {
-    match client.make_db(name).await {
-        Ok(res) => Ok((client, res)),
+    match couch_admin_client.make_db(name).await {
+        Ok(res) => Ok((couch_admin_client, res)),
         Err(e) => Err(e.message),
     }
 }
@@ -22,7 +22,7 @@ pub async fn create_user(
     password: &str,
 ) -> Result<CouchClient, String> {
     let payload = CouchUser::new(username.to_string(), password.to_string());
-    dbg!(ad_buy_engine::serde_json::to_string(&payload).expect("%$G#"));
+    // dbg!(ad_buy_engine::serde_json::to_string(&payload).expect("%$G#"));
 
     let req = client
         .req(
@@ -53,27 +53,6 @@ pub async fn create_user(
 }
 
 pub async fn delete_user(client: CouchClient, username: &str) -> Result<CouchClient, String> {
-    // let req = client
-    //     .req(
-    //         Method::DELETE,
-    //         format!("/_users/org.couchdb.user:{}", username),
-    //         None,
-    //     )
-    //     .send();
-    // match req.await {
-    //     Ok(res) => {
-    //         if res.status().is_success() {
-    //             println!("User Deleted");
-    //             Ok(client)
-    //         } else {
-    //             match res.json::<Value>().await {
-    //                 Ok(res) => Err(format!("User Not Created:{:?}", res)),
-    //                 Err(err) => Err(format!("User Not Created:{:?}", err)),
-    //             }
-    //         }
-    //     }
-    //     Err(e) => Err(e.to_string()),
-    // }
     match client.db("_users").await {
         Ok(res) => {
             match res
@@ -101,30 +80,42 @@ pub async fn delete_database(client: CouchClient, name: &str) -> Result<CouchCli
     }
 }
 
-// #[tokio::test(flavor = "current_thread")]
-// async fn create_test_database() {
-//     std::thread::sleep(std::time::Duration::from_secs(1));
-//     create_database(COUCH_CLIENT.clone(), "test").await.unwrap();
-// }
-
-// #[tokio::test(flavor = "current_thread")]
-// async fn test_create_user() {
-//     std::thread::sleep(std::time::Duration::from_secs(1));
-//     create_user(COUCH_CLIENT.clone(), "test_user", "test_password")
-//         .await
-//         .unwrap();
-// }
-
-#[tokio::test(flavor = "current_thread")]
-async fn test_delete_user() {
-    std::thread::sleep(std::time::Duration::from_secs(1));
-    delete_user(COUCH_CLIENT.clone(), "test_user")
-        .await
-        .unwrap();
+pub async fn add_security_document_to_database(
+    admin_couch_client: CouchClient,
+    database_name: String,
+    username: String,
+) -> Result<(), String> {
+    let security_document = CouchSecurity::for_user(username);
+    let req = admin_couch_client
+        .req(Method::PUT, format!("/{}/_security", database_name), None)
+        .header("Accept", "application/json")
+        .header("Accept", "text/plain")
+        .json(&security_document)
+        .send();
+    match req.await {
+        Ok(res) => match res.status().is_success() {
+            true => {
+                dbg!("Success: {:?}", res);
+                Ok(())
+            }
+            false => {
+                dbg!("Response returned failed status");
+                Err(format!("{:?}", res))
+            }
+        },
+        Err(e) => {
+            dbg!(&e);
+            Err(e.to_string())
+        }
+    }
 }
-//
-// #[tokio::test(flavor = "current_thread")]
-// async fn delete_test_database() {
-//     std::thread::sleep(std::time::Duration::from_secs(1));
-//     delete_database(COUCH_CLIENT.clone(), "test").await.unwrap();
-// }
+
+pub async fn couchdb_create_user_database(
+    username: String,
+    password: String,
+    database_name: String,
+) -> Result<(), String> {
+    let res = create_user(COUCH_CLIENT.clone(), &username, &password).await?;
+    let res = create_database(res, &database_name).await?;
+    Ok(add_security_document_to_database(res.0, database_name, username).await?)
+}

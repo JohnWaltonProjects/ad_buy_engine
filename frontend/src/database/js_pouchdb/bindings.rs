@@ -1,3 +1,4 @@
+use ad_buy_engine::serde_json::Value;
 use js_sys::Promise;
 use wasm_bindgen::prelude::*;
 
@@ -5,10 +6,13 @@ use wasm_bindgen::prelude::*;
 extern "C" {
 
     #[wasm_bindgen(js_name = "createPouchDatabase")]
-    pub fn create_pouch_database(name: String);
+    pub fn create_pouch_database(name: String) -> JsValue;
 
     #[wasm_bindgen(js_name = "replicateDatabase")]
     pub fn replicate(database_name: String);
+
+    // #[wasm_bindgen(js_name = "dbInfo")]
+    // pub fn database_info() ;
 
 }
 
