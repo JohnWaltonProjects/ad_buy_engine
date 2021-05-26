@@ -1,8 +1,7 @@
 use crate::appstate::app_state::STATE;
-use crate::database::errors::FrontendError;
-use crate::database::js_pouchdb::bindings::create_pouch_database;
-use crate::database::utils::log;
-use crate::database::DatabaseInfo;
+use crate::utils::pouchdb::database::Database;
+use crate::utils::pouchdb::errors::Error as FrontendError;
+use crate::utils::pouchdb::types::DatabaseInfo;
 use ad_buy_engine::serde_json::Value;
 use uuid::Uuid;
 use wasm_bindgen::prelude::*;
@@ -30,16 +29,16 @@ pub enum Msg {
 }
 
 // async fn replicate_database(slim_account_id: String) -> Result<(), FrontendError> {
-//     ConsoleService::info("DB: Replicating database");
+//     ConsoleService::info("DB: Replicating pouchdb");
 //     let db = Database::new(slim_account_id.as_str());
 //     db.replicate(slim_account_id).await
 // }
-//
-// async fn fetch_db_info(slim_account_id: String) -> Result<DatabaseInfo, FrontendError> {
-//     ConsoleService::info("Pouch Yew example: Fetching database info");
-//     let db = Database::new(slim_account_id.as_str());
-//     db.info().await
-// }
+
+async fn fetch_db_info(slim_account_id: String) -> Result<DatabaseInfo, FrontendError> {
+    ConsoleService::info("Pouch Yew example: Fetching pouchdb info");
+    let db = Database::new(slim_account_id.as_str());
+    db.info().await
+}
 
 impl Component for DatabaseComponent {
     type Message = Msg;
@@ -76,48 +75,27 @@ impl Component for DatabaseComponent {
                 false
             }
 
-            Msg::SyncDatabase => {
-                log("db create");
-                let res = create_pouch_database(self.db_info.db_name.clone());
-
-                if let Ok(ok) = res.into_serde::<Value>() {
-                    log(&format!("ok int oserde: {:?}", ok));
-                } else {
-                    log("err: ..")
-                }
-
-                // create_pouch_database(self.db_info.db_name.clone());
-                // let database_name = self.db_info.db_name.clone();
-                // let future = async {
-                //     match replicate_database(database_name).await {
-                //         Err(err) => Msg::SyncDatabaseFailed(err),
-                //         Ok(res) => Msg::SyncDatabaseDone(res),
-                //     }
-                // };
-                // self.link.send_future(future);
-                false
-            }
+            Msg::SyncDatabase => false,
 
             Msg::FetchDatabaseInfo => {
-                // let res = database_info();
-                // let database_name = self.db_info.db_name.clone();
-                // let future = async {
-                //     match fetch_db_info(database_name).await {
-                //         Ok(info) => Msg::FetchDatabaseInfoDone(info),
-                //         Err(_) => Msg::FetchDatabaseInfoFailed,
-                //     }
-                // };
-                //
-                // self.link.send_future(future);
+                let name = self.db_info.db_name.clone();
+                let future = async {
+                    match fetch_db_info(name).await {
+                        Ok(info) => Msg::FetchDatabaseInfoDone(info),
+                        Err(_) => Msg::FetchDatabaseInfoFailed,
+                    }
+                };
+
+                self.link.send_future(future);
                 false
             }
             Msg::FetchDatabaseInfoDone(info) => {
-                ConsoleService::info("Pouch Yew example: Fetching database info done");
+                ConsoleService::info("Pouch Yew example: Fetching pouchdb info done");
                 self.db_info = info;
                 true
             }
             Msg::FetchDatabaseInfoFailed => {
-                ConsoleService::error("Pouch Yew example: Fetching database info failed");
+                ConsoleService::error("Pouch Yew example: Fetching pouchdb info failed");
                 false
             }
         }
@@ -131,7 +109,6 @@ impl Component for DatabaseComponent {
         html! {
         <div>
             <p><button onclick=self.link.callback(|_| Msg::FetchDatabaseInfo)>{ "Get Database Info" }</button><i>{ format!("{:?}", self.db_info) }</i></p>
-            <button onclick=self.link.callback(|_| Msg::SyncDatabase)>{ "Sync!" }</button>
         </div>
                 }
     }

@@ -17,7 +17,7 @@ database_functions!(
 );
 
 // pub mod visits {
-//     use crate::utils::database::{get_conn, PgPool};
+//     use crate::utils::pouchdb::{get_conn, PgPool};
 //     use crate::utils::errors::ApiError;
 //     use std::ops::Deref;
 //

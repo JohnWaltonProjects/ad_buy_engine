@@ -51,7 +51,7 @@ either = {version="1.6.1",features=["serde"]}
 boyer-moore-magiclen = "0.2.10"
 thiserror = "1.0.23"
 
-#pouch = "0.0.7-alpha"
+#pouchdb = "0.0.7-alpha"
 
 
 [dependencies.web-sys]

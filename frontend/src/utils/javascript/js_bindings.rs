@@ -45,4 +45,11 @@ extern "C" {
 
     #[wasm_bindgen(js_name = "remove_class_name")]
     pub fn remove_class_name(element: Element, class_name: &str);
+
+}
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    pub fn log(s: &str);
 }

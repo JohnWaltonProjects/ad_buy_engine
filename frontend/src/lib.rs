@@ -27,7 +27,6 @@ pub mod macros;
 pub mod agents;
 pub mod appstate;
 pub mod components;
-pub mod database;
 pub mod error;
 pub mod prelude;
 pub mod utils;

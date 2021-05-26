@@ -1,5 +1,5 @@
 // use crate::utils::authentication::decode_jwt;
-// use crate::utils::database::PgPool;
+// use crate::utils::pouchdb::PgPool;
 // use crate::utils::errors::ApiError;
 // use crate::utils::helpers::respond_json;
 // use actix_identity::Identity;

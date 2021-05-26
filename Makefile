@@ -81,7 +81,8 @@ upload-campaign-server:
 	scp -C ./target/release/campaign_server ad_buy_engine@72.14.190.165:~/bin/
 
 build-secure-frontend:
-	rm -rf static/main/secure/* || true && cd frontend && trunk clean && trunk build  --release --public-url secure && cd dist/ && sed -i 's/index-.*.js/abe.js/g' index.html && sed -i 's/index-.*.wasm/abe.wasm/g' index.html && mv ./*.js ./abe.js && mv ./*.wasm ./abe.wasm &&  cd .. && mv dist/* ../static/main/secure/ && trunk clean && cd ..
+	rm -rf static/main/secure/* || true && cd frontend && trunk clean && trunk build --public-url secure && cd dist/ && sed -i 's/index-.*.js/abe.js/g' index.html && sed -i 's/index-.*.wasm/abe.wasm/g' index.html && mv ./*.js ./abe.js && mv ./*.wasm ./abe.wasm &&  cd .. && mv dist/* ../static/main/secure/ && trunk clean && cd ..
+	#rm -rf static/main/secure/* || true && cd frontend && trunk clean && trunk build  --release --public-url secure && cd dist/ && sed -i 's/index-.*.js/abe.js/g' index.html && sed -i 's/index-.*.wasm/abe.wasm/g' index.html && mv ./*.js ./abe.js && mv ./*.wasm ./abe.wasm &&  cd .. && mv dist/* ../static/main/secure/ && trunk clean && cd ..
 
 
 build-secure-frontend-rollup:

@@ -1,4 +1,4 @@
 pub mod javascript;
-pub mod puchdb;
+pub mod pouchdb;
 pub mod routes;
 pub mod uikit;

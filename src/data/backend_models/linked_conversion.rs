@@ -23,7 +23,7 @@ pub struct LinkedConversion {
     pub created_at: i64,
 }
 
-// todo if multiple clicks do not want to make multiple linked_conversion records in database, need to
+// todo if multiple clicks do not want to make multiple linked_conversion records in pouchdb, need to
 #[cfg(feature = "backend")]
 impl LinkedConversion {
     pub fn create(

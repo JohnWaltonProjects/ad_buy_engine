@@ -111,7 +111,7 @@
 //                     let message = info.details().unwrap_or_else(|| info.message()).to_string();
 //                     return ApiError::BadRequest(message);
 //                 }
-//                 ApiError::InternalServerError("Unknown database error".into())
+//                 ApiError::InternalServerError("Unknown pouchdb error".into())
 //             }
 //             diesel::result::Error::NotFound => ApiError::NotFound("not found".to_string()),
 //             diesel::result::Error::SerializationError(e) => {
