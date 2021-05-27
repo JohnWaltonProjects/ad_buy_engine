@@ -1,5 +1,5 @@
 local-dev-build-all:
-	 docker-compose down && make build-campaign-server && make build-couch-app && make build-secure-frontend && firefox -new-tab "127.0.0.1:8081/secure" && docker-compose up
+	 docker-compose down && make build-campaign-server && make build-couch-app && make build-secure-frontend-rollup && firefox -new-tab "127.0.0.1:8081/secure" && docker-compose up
 
 local-dev-build-n-serve-campaign-server:
 	docker-compose down && make build-campaign-server && make build-couch-app && docker-compose up
