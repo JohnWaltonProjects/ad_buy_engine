@@ -35,11 +35,13 @@ db.info().then(function (info) {
 
 export function replicateDatabase(name) {
 var localDB = new PouchDB(name);
-var remoteDB = new PouchDB('http://127.0.0.1:5984/' + name);
+var remoteDB = new PouchDB('http://127.0.0.1:8081/visits/' + name);
 localDB.replicate.from(remoteDB,  { live: true, retry:true}).on('complete', function () {
   // yay, we're done!
+    console.log('Finished Sync');
 }).on('error', function (err) {
   // boo, something went wrong!
+  console.log('Some Err');
 });
 
 }

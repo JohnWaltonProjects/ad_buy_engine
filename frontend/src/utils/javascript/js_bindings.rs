@@ -5,6 +5,9 @@ use web_sys::Element;
 #[wasm_bindgen(module = "/src/utils/javascript/js-scripts.js")]
 extern "C" {
 
+    #[wasm_bindgen(js_name = "replicateDatabase")]
+    pub fn replicate(name: String);
+
     #[wasm_bindgen(js_name = "getPayload")]
     pub fn get_payload() -> String;
 

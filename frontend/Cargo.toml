@@ -21,11 +21,13 @@ url =  {version="2.1.1", features=["serde"]}
 #wasm-bindgen-futures = "0.4.24"
 
 #yew = { git = "https://github.com/yewstack/yew/", branch = "master" }
+
 #yewtil = {version = "0.3.2",features = ["future"]}
 #yew="0.17.4"
 #yewtil = "0.3.2"
 #yew-macro = "0.17.0"
 
+pouchdb = { git = "https://github.com/dungeonfog/pouchdb-rs", branch = "master"}
 yew="0.17.4"
 yewtil = "0.3.2"
 yew-router = "0.14.0"

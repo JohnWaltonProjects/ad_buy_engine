@@ -12,6 +12,7 @@ use crate::public_routes::public_routes;
 use crate::utils::authentication::get_identity_service;
 use crate::utils::cache::add_cache;
 use crate::utils::database::{establish_connection, PgPool};
+use crate::utils::errors::ApiError;
 use crate::utils::state::init_state;
 use actix::Addr;
 use actix_cors::Cors;
@@ -47,6 +48,7 @@ use openssl::ssl::{SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod};
 use r2d2_diesel::ConnectionManager;
 use std::collections::HashMap;
 use std::net::IpAddr;
+use std::str::FromStr;
 use std::sync::{mpsc, Mutex};
 use std::time::Duration;
 
@@ -78,11 +80,7 @@ pub async fn server() -> std::io::Result<()> {
                 println!("\n");
                 srv.call(req).map(|res| res)
             })
-            .service(resource("/test").route(get().to(test_a)))
-            // .service(resource("/test_c").route(get().to(create_doc)))
-            // .service(resource("/test_r").route(get().to(restored_visit)))
-            // .service(resource("/test_u").route(get().to(upsert_doc)))
-            // .service(resource("/extra/{num}"))
+            // .service(resource("/test").route(get().to(test_a)))
             .service(resource("/extra/{num}").route(post().to(extra_multiple)))
             .service(resource("/extra").route(get().to(extra_single)))
             .service(resource("/learn/{campaign_id}").route(get().to(process_initial_click)))
@@ -104,37 +102,7 @@ pub async fn server() -> std::io::Result<()> {
 
     server.await
 }
-use crate::utils::errors::ApiError;
-use std::str::FromStr;
 
-pub async fn test_a(// q: Query<HashMap<String, String>>
-) -> HttpResponse {
-    // let username = q.get("username").cloned().expect("username");
-    // let password = q.get("password").cloned().expect("password");
-    // let database_name = q.get("database_name").cloned().expect("database_name");
-
-    println!("Pinging couchapp /test from campaign server");
-
-    dbg!(reqwest::Client::default()
-        .get("http://couch_app:9000/test")
-        .send()
-        .await
-        .unwrap());
-
-    // let url = format!(
-    //     "{}new_user?username={}&password={}&database_name={}",
-    //     COUCH_APP_URI, username, password, database_name
-    // );
-    // dbg!(&url);
-    //
-    // let res = actix_web::client::Client::default()
-    //     .get(url)
-    //     .send()
-    //     .await
-    //     .unwrap();
-
-    HttpResponse::Ok().finish()
-}
 pub async fn upsert_doc(q: Query<HashMap<String, String>>) -> HttpResponse {
     match couch::restore_visit(
         q.get("db_name").expect("HT$R").clone(),

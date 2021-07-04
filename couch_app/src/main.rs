@@ -41,6 +41,7 @@ async fn main() -> std::io::Result<()> {
             .data(couch.clone())
             .wrap(middleware::Logger::default())
             .service(resource("/new_user").route(get().to(new_user)))
+            .service(resource("/replicate").route(get().to(replicate)))
             .service(resource("/test").route(get().to(test_ping)))
             // .service(resource("/health").route(get().to(get_health)))
             // .service(resource("/insert_visit").route(post().to(insert_visit)))
@@ -51,6 +52,23 @@ async fn main() -> std::io::Result<()> {
     .bind("couch_app:9000")?
     .run()
     .await
+}
+
+pub async fn replicate(query: Query<HashMap<String, String>>) -> HttpResponse {
+    //     let database = query.get("database").cloned().unwrap();
+    //     let password_hash = query.get("password").cloned().unwrap();
+    //
+    // let client=couch_rs::Client::new("http://host.docker.internal:5984", &database, &password_hash).unwrap();
+    //
+    //     client.req(Method::PUT, format!("/"), None)
+
+    // dbg!(reqwest::Client::default()
+    //     .get("")
+    //     .send()
+    //     .await
+    //     .unwrap());
+
+    HttpResponse::Ok().body("Healthy")
 }
 
 pub async fn get_health() -> HttpResponse {

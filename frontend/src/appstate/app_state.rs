@@ -42,6 +42,7 @@ pub struct AppState {
     pub newest_visit_date: RefCell<i64>,
     pub selected_elements: RefCell<Vec<SelectedElement>>,
     pub crud_modal_type: RefCell<ModalType>,
+    // pub database: Option<PouchDB>,
 }
 
 impl AppState {
